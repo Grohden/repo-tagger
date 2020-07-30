@@ -1,0 +1,13 @@
+targets:
+  $default:
+    builders:
+      # Adds ignore lint rules for generated files
+      # (this is required due to a 'bug' in analyzer exclude entry)
+      source_gen|combining_builder:
+        options:
+          ignore_for_file:
+            - implicit_dynamic_parameter
+            - always_put_required_named_parameters_first
+            - constant_identifier_names
+            - lines_longer_than_80_chars
+            - prefer_const_literals_to_create_immutables

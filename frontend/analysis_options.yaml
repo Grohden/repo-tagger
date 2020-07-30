@@ -1,0 +1,15 @@
+include: package:effective_dart/analysis_options.1.2.0.yaml
+analyzer:
+  strong-mode:
+    implicit-casts: false
+enable-experiment:
+  - non-nullable
+linter:
+  rules:
+    await_only_futures: true
+    prefer_const_declarations: true
+    prefer_const_constructors: true
+    prefer_const_constructors_in_immutables: true
+    prefer_const_literals_to_create_immutables: true
+    prefer_single_quotes: true
+    public_member_api_docs: false
