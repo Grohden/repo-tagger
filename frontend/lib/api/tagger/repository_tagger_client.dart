@@ -39,7 +39,4 @@ abstract class RepositoryTaggerClient {
   @GET('/tags/list')
   Future<List<UserTag>> userTags();
 
-  /// Creates a user tag
-  @GET('/tags/list')
-  Future<List<UserTag>> userTags();
 }

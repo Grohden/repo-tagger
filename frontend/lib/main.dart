@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:repo_tagger/ui/pages/splash/splash_page.dart';
 
 import 'api/tagger/repository_tagger_client.dart';
 import 'env.dart';
@@ -12,6 +11,7 @@ import 'services/session_service.dart';
 import 'ui/pages/home/home_page.dart' show HomeBinding, HomePage;
 import 'ui/pages/login/login_page.dart' show LoginBinding, LoginPage;
 import 'ui/pages/register/register_page.dart';
+import 'ui/pages/splash/splash_page.dart';
 
 void main() {
   runApp(TaggerApp());

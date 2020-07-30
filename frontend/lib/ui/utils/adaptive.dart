@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 bool shouldUseMaterial(ThemeData theme) {
   assert(theme.platform != null);
 
-  return true;
   switch (theme.platform) {
     case TargetPlatform.android:
     case TargetPlatform.fuchsia:

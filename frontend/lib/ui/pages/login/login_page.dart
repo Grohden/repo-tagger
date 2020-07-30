@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:repo_tagger/ui/pages/home/home_page.dart';
 
 import '../../../api/tagger/repository_tagger_client.dart';
 import '../../../router.dart';
