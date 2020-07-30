@@ -12,6 +12,7 @@ val kluent_version: String by project
 plugins {
     application
     kotlin("jvm") version "1.3.70"
+    id("com.github.johnrengelman.shadow") version "5.0.0"
 }
 
 group = "com.grohden.repotagger"
@@ -19,6 +20,16 @@ version = "0.0.1"
 
 application {
     mainClassName = "io.ktor.server.netty.EngineMain"
+}
+
+tasks.withType<Jar> {
+    manifest {
+        attributes(
+            mapOf(
+                "Main-Class" to application.mainClassName
+            )
+        )
+    }
 }
 
 repositories {
