@@ -25,15 +25,21 @@ String _required(String value) {
 class LoginPage extends GetView<LoginController> {
   @override
   Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
     return GetX(
       init: controller,
       builder: (_) => Scaffold(
-        appBar: AppBar(
-          title: const Text('Github tagger'),
-        ),
         body: Center(
-          child: PageBody(
-            child: _buildForm(context),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Log in Repo Tagger', style: text.headline4),
+              PageBody(
+                child: _buildForm(context),
+              ),
+            ],
           ),
         ),
       ),
