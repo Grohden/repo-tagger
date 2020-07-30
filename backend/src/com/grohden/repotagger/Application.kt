@@ -21,6 +21,7 @@ import io.ktor.gson.gson
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.*
 import io.ktor.request.path
 import io.ktor.response.respond
 import io.ktor.routing.get
@@ -28,6 +29,7 @@ import io.ktor.routing.routing
 import io.ktor.server.netty.EngineMain
 import org.jetbrains.exposed.sql.Database
 import org.slf4j.event.Level
+import java.io.File
 
 /**
  * Pool of JDBC connections used.
@@ -85,6 +87,7 @@ fun Application.moduleWithDependencies(
 ) {
     val github = GithubClient(client)
 
+
     install(DefaultHeaders) {
         header(HttpHeaders.Server, "") // OWASP recommended
     }
@@ -129,6 +132,12 @@ fun Application.moduleWithDependencies(
     routing {
         if (testing) {
             trace { application.log.trace(it.buildText()) }
+        }
+
+        static("static") {
+            staticRootFolder = File("../frontend/build/web")
+            files(".")
+            default("index.html")
         }
 
         account(dao, github)
