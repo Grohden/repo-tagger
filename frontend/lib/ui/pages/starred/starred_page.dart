@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../api/tagger/repository_tagger_client.dart';
 import '../../../services/session_service.dart';
 import '../../extensions/scroll_controller.dart';
+import '../../molecules/load_page_error.dart';
 import '../../templates/page_body.dart';
 
 part 'starred_bindings.dart';
@@ -16,9 +17,6 @@ class StarredPage extends GetView<StarredController> {
     return GetX(
       init: controller,
       builder: (_) => Scaffold(
-        appBar: AppBar(
-          title: const Text('Starred repositories'),
-        ),
         body: Center(
           child: _buildContent(context),
         ),
@@ -27,6 +25,10 @@ class StarredPage extends GetView<StarredController> {
   }
 
   Widget _buildContent(BuildContext context) {
+    if (controller.hasLoadError.value) {
+      return const LoadPageError();
+    }
+
     if (controller.showLoading.value) {
       return const CircularProgressIndicator();
     }
