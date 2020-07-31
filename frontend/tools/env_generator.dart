@@ -6,7 +6,7 @@ Future<void> main() async {
     'taggerUrl': Platform.environment['TAGGER_BASE_URL']
   };
 
-  const filename = 'lib/env.dart';
+  const filename = 'lib/generated_env.dart';
   final contents = config.entries.fold(<String>[
     '// ignore_for_file: public_member_api_docs, prefer_single_quotes\n'
   ], (previousValue, element) {

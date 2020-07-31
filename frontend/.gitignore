@@ -37,6 +37,9 @@
 # Web related
 lib/generated_plugin_registrant.dart
 
+# Manually generated
+lib/generated_env.dart
+
 # Symbolication related
 app.*.symbols
 

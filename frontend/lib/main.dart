@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'api/tagger/repository_tagger_client.dart';
-import 'env.dart';
+import 'generated_env.dart';
 import 'router.dart';
 import 'services/session_service.dart';
 import 'ui/pages/home/home_page.dart' show HomeBinding, HomePage;
