@@ -67,7 +67,7 @@ class TaggerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'Github Tagger',
+      title: 'Repo Tagger',
       themeMode: ThemeMode.dark,
       theme: ThemeData.light().copyWith(
         primaryColor: Colors.blue,
