@@ -5,6 +5,7 @@ import '../../../api/tagger/repository_tagger_client.dart';
 import '../../../services/session_service.dart';
 import '../../extensions/scroll_controller.dart';
 import '../../molecules/load_page_error.dart';
+import '../../molecules/page_title.dart';
 import '../../templates/page_body.dart';
 
 part 'starred_bindings.dart';
@@ -38,26 +39,37 @@ class StarredPage extends GetView<StarredController> {
     final style = theme.textTheme;
 
     return SafeArea(
-      child: ListView.separated(
-          itemCount: items.length,
-          padding: const EdgeInsets.all(kStandardPadding),
-          separatorBuilder: (_, __) => const Divider(),
-          itemBuilder: (context, index) {
-            final item = items[index];
-
-            return ListTile(
-              title: Text(item.name, style: style.headline6),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (!item.description.isNullOrBlank)
-                    Text(item.description ?? ''),
-                  _buildChipDetails(item),
-                ],
-              ),
-            );
-          }),
+      child: Column(
+        children: [
+          const PageTitle('Current user starred repositories'),
+          Expanded(
+            child: _buildList(items, style),
+          ),
+        ],
+      ),
     );
+  }
+
+  Widget _buildList(List<SourceRepository> items, TextTheme style) {
+    return ListView.separated(
+        itemCount: items.length,
+        padding: const EdgeInsets.all(kStandardPadding),
+        separatorBuilder: (_, __) => const Divider(thickness: 1),
+        itemBuilder: (context, index) {
+          final item = items[index];
+
+          return ListTile(
+            title: Text(item.name, style: style.headline6),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (!item.description.isNullOrBlank)
+                  Text(item.description ?? ''),
+                _buildChipDetails(item),
+              ],
+            ),
+          );
+        });
   }
 
   Widget _buildChipDetails(SourceRepository item) {

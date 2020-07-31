@@ -7,6 +7,7 @@ class TagsController extends GetxController {
   final scrollController = ScrollController();
 
   final showLoading = false.obs;
+  final hasLoadError = false.obs;
   final repos = RxList<SourceRepository>([]);
 
   void logoff() async {
@@ -16,14 +17,15 @@ class TagsController extends GetxController {
   void onInit() async {
     super.onInit();
     showLoading.value = true;
+    hasLoadError.value = false;
     try {
-      repos.value = await tagger.userTags();
+      await tagger.starredRepos();
+//      repos.value = await tagger.userTags();
+    } on Exception catch (error) {
+      print(error);
+      hasLoadError.value = true;
     } finally {
       showLoading.value = false;
     }
-
-    scrollController.onBottomReach(() {
-//      loadMore();
-    }, throttleDuration: const Duration(seconds: 1));
   }
 }
