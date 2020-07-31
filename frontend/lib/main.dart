@@ -68,9 +68,13 @@ class TaggerApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       title: 'Github Tagger',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+      themeMode: ThemeMode.dark,
+      theme: ThemeData.light().copyWith(
+        primaryColor: Colors.blue,
+      ),
+      darkTheme: ThemeData.dark().copyWith(
+        primaryColor: Colors.blue,
+        accentColor: Colors.lightBlueAccent,
       ),
       initialRoute: Routes.splash,
       getPages: [
