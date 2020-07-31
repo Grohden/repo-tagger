@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import '../../../api/tagger/repository_tagger_client.dart';
 import '../../../router.dart';
 import '../../../services/session_service.dart';
-import '../../atoms/standard_spacing.dart';
+import '../../atoms/standard_input_spacing.dart';
 import '../../molecules/primary_raised_button.dart';
 import '../../templates/page_body.dart';
 import '../../utils/form_controller.dart';
@@ -59,7 +59,7 @@ class LoginPage extends GetView<LoginController> {
             keyboardType: TextInputType.emailAddress,
             validator: _required,
           ),
-          StandardSpacing(),
+          StandardInputSpacing(),
           TextFormField(
             controller: controller.passwordController,
             decoration: const InputDecoration(labelText: 'Password'),
@@ -67,10 +67,10 @@ class LoginPage extends GetView<LoginController> {
             onFieldSubmitted: (value) => controller.submit(),
             validator: _required,
           ),
-          StandardSpacing(),
+          StandardInputSpacing(),
           _renderSubmitButton(context),
-          StandardSpacing(),
-          StandardSpacing(),
+          StandardInputSpacing(),
+          StandardInputSpacing(),
           _renderSignUpButton(context),
         ],
       ),

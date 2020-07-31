@@ -1,10 +1,9 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../api/tagger/repository_tagger_client.dart';
 import '../../../router.dart';
-import '../../atoms/standard_spacing.dart';
+import '../../atoms/standard_input_spacing.dart';
 import '../../molecules/primary_raised_button.dart';
 import '../../templates/page_body.dart';
 import '../../utils/form_controller.dart';
@@ -58,7 +57,7 @@ class RegisterPage extends GetView<RegisterController> {
             ],
             validator: _required,
           ),
-          StandardSpacing(),
+          StandardInputSpacing(),
           TextFormField(
             controller: controller.displayNameController,
             decoration: const InputDecoration(
@@ -74,7 +73,7 @@ class RegisterPage extends GetView<RegisterController> {
             ],
             validator: _required,
           ),
-          StandardSpacing(),
+          StandardInputSpacing(),
           TextFormField(
             controller: controller.passwordController,
             decoration: const InputDecoration(hintText: 'Password'),
@@ -86,10 +85,10 @@ class RegisterPage extends GetView<RegisterController> {
             onFieldSubmitted: (value) => controller.submit(),
             validator: _required,
           ),
-          StandardSpacing(),
+          StandardInputSpacing(),
           _renderSubmitButton(context),
-          StandardSpacing(),
-          StandardSpacing(),
+          StandardInputSpacing(),
+          StandardInputSpacing(),
           _renderLoginButton(context),
         ],
       ),
