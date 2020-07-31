@@ -1,7 +1,6 @@
 package com.grohden.repotagger
 
 import com.grohden.repotagger.dao.CreateUserInput
-import com.grohden.repotagger.routes.FacadeError
 import io.ktor.auth.UserPasswordCredential
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
@@ -24,7 +23,7 @@ class AccountTest : BaseTest() {
 
     @Test
     fun `login should succeed with token`() = testApp {
-        handleRequest(HttpMethod.Post, "/login") {
+        handleRequest(HttpMethod.Post, "/api/login") {
             withContentType(ContentType.Application.Json)
             setBody(
                 UserPasswordCredential(
@@ -40,7 +39,7 @@ class AccountTest : BaseTest() {
 
     @Test
     fun `request without token should fail`() = testApp {
-        handleRequest(HttpMethod.Get, "/repository/starred").apply {
+        handleRequest(HttpMethod.Get, "/api/repository/starred").apply {
             requestHandled shouldBe true
             response.status() shouldBeEqualTo HttpStatusCode.Unauthorized
         }
@@ -52,7 +51,7 @@ class AccountTest : BaseTest() {
         mockFindUserByCredential(userName = name)
         mockFindUserById(userName = name)
 
-        handleRequest(HttpMethod.Get, "/repository/starred") {
+        handleRequest(HttpMethod.Get, "/api/repository/starred") {
             withAuthorization(userName = name)
         }.apply {
             requestHandled shouldBe true
@@ -66,7 +65,7 @@ class AccountTest : BaseTest() {
         // Mockk returns a empty stub.
         every { mockedDao.findUserByUserName(any()) } returns null
 
-        handleRequest(HttpMethod.Post, "/register") {
+        handleRequest(HttpMethod.Post, "/api/register") {
             withContentType(ContentType.Application.Json)
             setBody(
                 CreateUserInput(
@@ -91,7 +90,7 @@ class AccountTest : BaseTest() {
         ).let { gson.toJson(it) }
 
         // user is already mocked, and theoretically already on DB
-        handleRequest(HttpMethod.Post, "/register") {
+        handleRequest(HttpMethod.Post, "/api/register") {
             withContentType(ContentType.Application.Json)
             setBody(body)
         }.apply {

@@ -1,4 +1,4 @@
-package com.grohden.repotagger.routes
+package com.grohden.repotagger.api
 
 import com.grohden.repotagger.dao.CreateTagInput
 import com.grohden.repotagger.dao.DAOFacade
@@ -12,12 +12,12 @@ import io.ktor.auth.authentication
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receiveOrNull
 import io.ktor.response.respond
-import io.ktor.routing.Routing
+import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.route
 
-fun Routing.userTag(
+fun Route.userTag(
     dao: DAOFacade,
     github: GithubClient
 ) {

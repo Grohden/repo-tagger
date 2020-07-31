@@ -23,7 +23,7 @@ class UserTagTest : BaseTest() {
             )
         )
 
-        handleRequest(HttpMethod.Post, "/tag/add") {
+        handleRequest(HttpMethod.Post, "/api/tag/add") {
             withContentType(ContentType.Application.Json)
             withAuthorization(user)
             setBody(CreateTagInput(

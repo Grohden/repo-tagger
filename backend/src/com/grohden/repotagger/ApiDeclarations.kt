@@ -1,4 +1,4 @@
-package com.grohden.repotagger.routes
+package com.grohden.repotagger
 
 import io.ktor.application.ApplicationCall
 import io.ktor.http.HttpStatusCode
@@ -13,7 +13,7 @@ suspend fun ApplicationCall.respondError(
 ) = this.respondText(status = status) { errorMessage.message }
 
 /**
- * Error messages exhibited by facades/routes
+ * Error messages exhibited by facades/api
  */
 enum class FacadeError(val message: String) {
     INVALID_PAYLOAD("invalid payload"),

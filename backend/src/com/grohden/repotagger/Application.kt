@@ -1,11 +1,11 @@
 package com.grohden.repotagger
 
+import com.grohden.repotagger.api.account
+import com.grohden.repotagger.api.repository
+import com.grohden.repotagger.api.userTag
 import com.grohden.repotagger.dao.DAOFacade
 import com.grohden.repotagger.dao.DAOFacadeDatabase
 import com.grohden.repotagger.github.api.GithubClient
-import com.grohden.repotagger.routes.account
-import com.grohden.repotagger.routes.repository
-import com.grohden.repotagger.routes.userTag
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.application.*
 import io.ktor.auth.Authentication
@@ -21,10 +21,14 @@ import io.ktor.gson.gson
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.content.*
+import io.ktor.http.content.default
+import io.ktor.http.content.files
+import io.ktor.http.content.static
+import io.ktor.http.content.staticRootFolder
 import io.ktor.request.path
 import io.ktor.response.respond
 import io.ktor.routing.get
+import io.ktor.routing.route
 import io.ktor.routing.routing
 import io.ktor.server.netty.EngineMain
 import org.jetbrains.exposed.sql.Database
@@ -140,9 +144,11 @@ fun Application.moduleWithDependencies(
             default("index.html")
         }
 
-        account(dao, github)
-        repository(dao, github)
-        userTag(dao, github)
+        route("api") {
+            account(dao, github)
+            repository(dao, github)
+            userTag(dao, github)
+        }
 
         install(StatusPages) {
             exception<AuthenticationException> {

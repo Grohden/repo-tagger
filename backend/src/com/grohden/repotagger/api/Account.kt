@@ -1,9 +1,11 @@
-package com.grohden.repotagger.routes
+package com.grohden.repotagger.api
 
+import com.grohden.repotagger.FacadeError
 import com.grohden.repotagger.JwtConfig
 import com.grohden.repotagger.dao.CreateUserInput
 import com.grohden.repotagger.dao.DAOFacade
 import com.grohden.repotagger.github.api.GithubClient
+import com.grohden.repotagger.respondError
 import io.ktor.application.call
 import io.ktor.auth.UserPasswordCredential
 import io.ktor.client.features.logging.DEFAULT
@@ -12,13 +14,13 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.request.receiveOrNull
 import io.ktor.response.respond
 import io.ktor.response.respondText
-import io.ktor.routing.Routing
+import io.ktor.routing.Route
 import io.ktor.routing.post
 
 /**
- * Account related api routes
+ * Account related api api
  */
-fun Routing.account(
+fun Route.account(
     dao: DAOFacade,
     github: GithubClient
 ) {

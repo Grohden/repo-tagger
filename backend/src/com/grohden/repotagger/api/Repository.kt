@@ -1,4 +1,4 @@
-package com.grohden.repotagger.routes
+package com.grohden.repotagger.api
 
 import com.grohden.repotagger.dao.DAOFacade
 import com.grohden.repotagger.dao.tables.User
@@ -9,11 +9,11 @@ import io.ktor.auth.authenticate
 import io.ktor.auth.authentication
 import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
-import io.ktor.routing.Routing
+import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.route
 
-fun Routing.repository(dao: DAOFacade, github: GithubClient) {
+fun Route.repository(dao: DAOFacade, github: GithubClient) {
     authenticate {
         route("/repository") {
             /**
