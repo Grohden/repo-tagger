@@ -3,7 +3,8 @@ import 'dart:io';
 
 Future<void> main() async {
   final config = {
-    'taggerUrl': Platform.environment['TAGGER_BASE_URL']
+    'taggerUrl':
+        Platform.environment['TAGGER_BASE_URL'] ?? 'http://0.0.0.0:8080/api'
   };
 
   const filename = 'lib/generated_env.dart';
