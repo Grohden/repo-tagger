@@ -12,10 +12,11 @@ RUN git clone --branch "beta" --depth 1 https://github.com/flutter/flutter.git $
 # Copy current frontend
 COPY --chown=root:root ./frontend .
 
-# Actually build flutter
-RUN flutter config --enable-web && \
-    flutter packages get && \
-    dart tools/env_generator.dart && \
+# Cached layer for flutter deps
+RUN flutter config --enable-web && flutter packages get
+
+# Generate and build the frontend app
+RUN dart tools/env_generator.dart && \
     flutter packages pub run build_runner build --delete-conflicting-outputs && \
     flutter build web
 
@@ -29,14 +30,14 @@ COPY --chown=root:root ./backend .
 COPY --from=frontend-build /home/root/frontend/build/web ./resources/web
 
 # Actually build backend
-RUN ./gradlew :shadowJar
+RUN ./gradlew --no-daemon shadowJar
 
 # Backend serve
-FROM openjdk:8-jdk-alpine
+FROM openjdk:8-jre-alpine
 
-RUN adduser -D -g '' server
-RUN mkdir /app
-RUN chown -R server /app
+RUN adduser -D -g '' server && \
+    mkdir /app && \
+    chown -R server /app
 
 USER server
 

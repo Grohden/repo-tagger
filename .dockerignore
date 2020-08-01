@@ -2,9 +2,7 @@ Dockerfile
 .dockerignore
 .env
 *.md
-.gradle
 .idea
-gradle
 
 frontend/.dart_tool
 frontend/.idea
@@ -19,5 +17,4 @@ frontend/android
 frontend/ios
 
 backend/.idea
-backend/.gradle
 backend/build
