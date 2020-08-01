@@ -1,10 +1,9 @@
 part of 'starred_page.dart';
 
+
 class StarredController extends GetxController {
   final formKey = GlobalKey<FormState>();
   final tagger = Get.find<RepositoryTaggerClient>();
-
-  final scrollController = ScrollController();
 
   final hasLoadError = false.obs;
   final showLoading = false.obs;
@@ -27,6 +26,7 @@ class StarredController extends GetxController {
     } finally {
       showLoading.value = false;
     }
+  }
 
     scrollController.onBottomReach(() {
 //      loadMore();

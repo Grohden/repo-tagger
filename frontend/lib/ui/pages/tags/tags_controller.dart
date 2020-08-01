@@ -4,8 +4,6 @@ class TagsController extends GetxController {
   final formKey = GlobalKey<FormState>();
   final tagger = Get.find<RepositoryTaggerClient>();
 
-  final scrollController = ScrollController();
-
   final showLoading = false.obs;
   final hasLoadError = false.obs;
   final repos = RxList<SourceRepository>([]);
