@@ -81,3 +81,17 @@ kotlin.sourceSets["test"].kotlin.srcDirs("test")
 
 sourceSets["main"].resources.srcDirs("resources")
 sourceSets["test"].resources.srcDirs("testresources")
+
+tasks {
+    named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
+        archiveBaseName.set(rootProject.name)
+        // Version is not needed for now.
+        archiveVersion.set("")
+    }
+}
+
+tasks {
+    build {
+        dependsOn(shadowJar)
+    }
+}
