@@ -106,7 +106,7 @@ interface DAOFacade : Closeable {
     fun findUserTagsByRepository(
         userId: Int,
         repositoryId: Int
-    ): List<UserTagDAO>
+    ): List<UserTagDTO>
 
     /**
      * Finds all tags that a user has created
@@ -197,7 +197,8 @@ class DAOFacadeDatabase(private val db: Database) : DAOFacade {
             .slice(SourceRepositoryTable.columns)
             .select {
                 SourceRepoUserTagTable.repository eq SourceRepositoryTable.id and
-                        (SourceRepoUserTagTable.tag eq tagId)
+                        (SourceRepoUserTagTable.tag eq tagId) and
+                        (SourceRepositoryTable.user eq userId)
             }
             .let { SourceRepositoryDAO.wrapRows(it) }
             .toList()
@@ -206,8 +207,17 @@ class DAOFacadeDatabase(private val db: Database) : DAOFacade {
     override fun findUserTagsByRepository(
         userId: Int,
         repositoryId: Int
-    ): List<UserTagDAO> = transaction(db) {
-        TODO()
+    ): List<UserTagDTO> = transaction(db) {
+        (UserTagsTable innerJoin SourceRepoUserTagTable)
+            .slice(UserTagsTable.columns)
+            .select {
+                SourceRepoUserTagTable.tag eq UserTagsTable.id and
+                        (SourceRepoUserTagTable.repository eq repositoryId) and
+                        (UserTagsTable.user eq userId)
+            }
+            .let { UserTagDAO.wrapRows(it) }
+            .toList()
+            .toDTOList()
     }
 
     override fun createUserTag(
