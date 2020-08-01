@@ -5,6 +5,20 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 
+/**
+ * Represents a github source repository
+ *
+ * It contains basic data about it
+ *
+ * FIXME: we don't need to store
+ *  name or description, just the githubId should be
+ *  enough
+ *
+ * Note: it's not recommended to expose
+ * the id field to api consumers, instead
+ * expose the github id and manage this entity based
+ * on userId and githubId.
+ */
 object SourceRepositoryTable : IntIdTable(name = "source_repository") {
     val name = varchar("name", 100)
     val description = text("description")
