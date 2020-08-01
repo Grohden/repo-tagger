@@ -119,10 +119,13 @@ interface DAOFacade : Closeable {
 
 class EntityNotFound(subject: String) : Throwable("Entity $subject not found")
 
-class DAOFacadeDatabase(private val db: Database) : DAOFacade {
+class DAOFacadeDatabase(
+    private val isLogEnabled: Boolean = false,
+    private val db: Database
+) : DAOFacade {
     override fun init() = transaction(db) {
         // Create the used tables
-        addLogger(StdOutSqlLogger)
+
         SchemaUtils.create(
             UsersTable,
             UserTagsTable,

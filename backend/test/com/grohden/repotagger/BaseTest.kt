@@ -5,6 +5,7 @@ import com.grohden.repotagger.dao.DAOFacade
 import com.grohden.repotagger.dao.DAOFacadeDatabase
 import com.grohden.repotagger.dao.tables.User
 import io.ktor.auth.UserPasswordCredential
+import io.ktor.config.MapApplicationConfig
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.server.testing.TestApplicationEngine
@@ -17,6 +18,7 @@ import org.jetbrains.exposed.sql.Database
 const val DEFAULT_USER = "jonny.test"
 const val DEFAULT_PASS = "123456"
 
+@Suppress("EXPERIMENTAL_API_USAGE")
 abstract class BaseTest {
     protected val gson = Gson()
     protected val mockedDao = mockk<DAOFacade>(relaxed = true)
@@ -24,14 +26,8 @@ abstract class BaseTest {
     protected fun getInMemoryDao(): DAOFacade {
         return Database
             .connect("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", driver = "org.h2.Driver")
-            .let(::DAOFacadeDatabase)
+            .let { db -> DAOFacadeDatabase(isLogEnabled = true, db = db) }
             .apply { init() }
-    }
-
-    protected fun testApp(callback: TestApplicationEngine.() -> Unit) {
-        withTestApplication({
-            moduleWithDependencies(testing = true, dao = mockedDao)
-        }, callback)
     }
 
     /**
@@ -46,10 +42,20 @@ abstract class BaseTest {
         callback: TestApplicationEngine.(dao: DAOFacade) -> Unit
     ) {
         withTestApplication({
-            moduleWithDependencies(testing = true, dao = dao)
+            (environment.config as MapApplicationConfig).apply {
+                // Set here the properties
+                put("ktor.environment", "test")
+                put("jwt.domain", "test")
+                put("jwt.audience", "test")
+                put("jwt.realm", "test")
+            }
+            moduleWithDependencies(dao = dao)
         }) { callback(this, dao) }
     }
 
+    protected fun testApp(callback: TestApplicationEngine.() -> Unit) {
+        testApp(mockedDao) { callback(this) }
+    }
 
     protected fun TestApplicationRequest.withContentType(type: ContentType) {
         addHeader(HttpHeaders.ContentType, type.toString())
@@ -67,7 +73,10 @@ abstract class BaseTest {
     }
 
     protected fun TestApplicationRequest.withAuthorization(user: User) {
-        val token = JwtConfig.makeToken(user)
+        val token = JwtProvider(
+            issuer = "test",
+            audience = "test"
+        ).makeToken(user)
 
         addHeader("Authorization", "Bearer $token")
     }

@@ -1,7 +1,7 @@
 package com.grohden.repotagger.api
 
 import com.grohden.repotagger.FacadeError
-import com.grohden.repotagger.JwtConfig
+import com.grohden.repotagger.JwtProvider
 import com.grohden.repotagger.dao.CreateUserInput
 import com.grohden.repotagger.dao.DAOFacade
 import com.grohden.repotagger.github.api.GithubClient
@@ -22,7 +22,8 @@ import io.ktor.routing.post
  */
 fun Route.account(
     dao: DAOFacade,
-    github: GithubClient
+    github: GithubClient,
+    jwtProvider: JwtProvider
 ) {
     val logger = Logger.DEFAULT
 
@@ -95,7 +96,7 @@ fun Route.account(
             }
         } else {
             call.respondText(status = HttpStatusCode.OK) {
-                JwtConfig.makeToken(user)
+                jwtProvider.makeToken(user)
             }
         }
     }

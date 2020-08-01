@@ -14,7 +14,7 @@ import kotlin.test.Test
 
 class UserTagTest : BaseTest() {
     @Test
-    fun `should create a tag`() = testApp(getInMemoryDao()) { dao ->
+    fun `should create and list tag`() = testApp(getInMemoryDao()) { dao ->
         val user = dao.createUser(
             CreateUserInput(
                 name = "grohden",
