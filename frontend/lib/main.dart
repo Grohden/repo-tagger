@@ -11,6 +11,7 @@ import 'services/session_service.dart';
 import 'ui/pages/home/home_page.dart' show HomeBinding, HomePage;
 import 'ui/pages/login/login_page.dart' show LoginBinding, LoginPage;
 import 'ui/pages/register/register_page.dart';
+import 'ui/pages/repository_details/repository_details_page.dart';
 import 'ui/pages/splash/splash_page.dart';
 
 void main() {
@@ -24,6 +25,9 @@ class TaggerApp extends StatelessWidget {
     @required this.taggerClient,
   });
 
+  /// This factory constructor
+  /// is a trick to put global dependencies
+  /// on get
   factory TaggerApp() {
     final session = Get.put(SessionService());
 
@@ -86,6 +90,11 @@ class TaggerApp extends StatelessWidget {
           name: Routes.home,
           page: () => HomePage(),
           binding: HomeBinding(),
+        ),
+        GetPage(
+          name: Routes.repoDetails,
+          page: () => RepositoryDetailsPage(),
+          binding: RepositoryDetailsBinding(),
         ),
         GetPage(
           name: Routes.login,

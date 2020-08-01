@@ -7,6 +7,7 @@ import '../../extensions/scroll_controller.dart';
 import '../../molecules/load_page_error.dart';
 import '../../molecules/page_title.dart';
 import '../../templates/page_body.dart';
+import '../../../router.dart';
 
 part 'starred_bindings.dart';
 
@@ -59,6 +60,7 @@ class StarredPage extends GetView<StarredController> {
           final item = items[index];
 
           return ListTile(
+            onTap: () => controller.openRepo(item),
             title: Text(item.name, style: style.headline6),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

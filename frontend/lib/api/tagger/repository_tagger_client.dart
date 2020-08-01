@@ -35,6 +35,11 @@ abstract class RepositoryTaggerClient {
   @GET('/repository/starred')
   Future<List<SourceRepository>> starredRepos();
 
+  /// Lists a authorized user repository details (with user tags)
+  /// given based on the given id
+  @GET('/repository/detail/{id}')
+  Future<SourceRepository> detailedRepo(@Path('id') int id);
+
   /// Lists all user tags
   @GET('/tag/list')
   Future<List<UserTag>> userTags();

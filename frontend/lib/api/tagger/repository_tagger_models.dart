@@ -33,18 +33,23 @@ class RegisterUser {
 
 @JsonSerializable()
 class SourceRepository {
-  SourceRepository(
-      {@required this.id,
-      @required this.name,
-      @required this.description,
-      @required this.url,
-      @required this.language,
-      @required this.stargazersCount});
+  SourceRepository({
+    @required this.id,
+    @required this.name,
+    @required this.description,
+    @required this.url,
+    @required this.language,
+    @required this.stargazersCount,
+    this.userTags = const []
+  });
 
   final int id;
   final String name;
   final String description;
   final String url;
+
+  @JsonKey(name: 'user_tags', defaultValue: [])
+  final List<UserTag> userTags;
 
   @JsonKey(nullable: true)
   final String language;

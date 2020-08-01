@@ -28,8 +28,7 @@ class StarredController extends GetxController {
     }
   }
 
-    scrollController.onBottomReach(() {
-//      loadMore();
-    }, throttleDuration: const Duration(seconds: 1));
+  void openRepo(SourceRepository repo) {
+    Router.goToRepositoryDetails(repo.id);
   }
 }

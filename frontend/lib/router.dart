@@ -5,6 +5,7 @@ class Routes {
   static const home = '/home';
   static const login = '/login';
   static const register = '/register';
+  static const repoDetails = '/repository/:id';
 }
 
 class Router {
@@ -28,5 +29,9 @@ class Router {
 
   static void getOffAllToHome() {
     Get.offAllNamed(Routes.home);
+  }
+
+  static void goToRepositoryDetails(int id) {
+    Get.toNamed('/repository/$id');
   }
 }
