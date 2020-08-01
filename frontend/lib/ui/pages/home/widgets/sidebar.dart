@@ -59,7 +59,7 @@ class Sidebar extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12.0),
       child: Text(
-        'Repo tagger',
+        'Repo Tagger',
         style: textStyle.headline4,
       ),
     );
