@@ -24,9 +24,6 @@ class RegisterPage extends GetView<RegisterController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sign in'),
-      ),
       body: Center(
         child: PageBody(
           child: _buildForm(context),
