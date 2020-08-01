@@ -17,7 +17,10 @@ class TagsPage extends GetView<TagsController> {
       init: controller,
       builder: (_) => Scaffold(
         body: Center(
-          child: _buildContent(context),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 28),
+            child: _buildContent(context),
+          ),
         ),
       ),
     );
@@ -32,38 +35,21 @@ class TagsPage extends GetView<TagsController> {
       return const CircularProgressIndicator();
     }
 
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 28),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const PageTitle('Current registered tags'),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                'jojo',
-                'javascript',
-                'jojo',
-                'javascript',
-                'jojo',
-                'javascript',
-                'jojo',
-                'javascript',
-                'jojo',
-                'javascript',
-                'jojo',
-                'javascript',
-                'jojo',
-                'javascript',
-                'jojo',
-                'javascript',
-              ].map((e) => Chip(label: Text(e))).toList(),
-            )
-          ],
-        ),
-      ),
+    final tags = controller.tags.value;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const PageTitle('Current registered tags'),
+        if (tags.isNotEmpty)
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: tags.map((tag) => Chip(label: Text(tag.name))).toList(),
+          )
+        else
+          const Text("You don't have any tags yet")
+      ],
     );
   }
 }

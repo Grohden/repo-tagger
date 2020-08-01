@@ -6,7 +6,7 @@ class TagsController extends GetxController {
 
   final showLoading = false.obs;
   final hasLoadError = false.obs;
-  final repos = RxList<SourceRepository>([]);
+  final tags = RxList<UserTag>([]);
 
   void logoff() async {
     await Get.find<SessionService>().clearToken();
@@ -17,8 +17,7 @@ class TagsController extends GetxController {
     showLoading.value = true;
     hasLoadError.value = false;
     try {
-      await tagger.starredRepos();
-//      repos.value = await tagger.userTags();
+      tags.value = await tagger.userTags();
     } on Exception catch (error) {
       print(error);
       hasLoadError.value = true;

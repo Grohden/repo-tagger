@@ -36,7 +36,7 @@ abstract class RepositoryTaggerClient {
   Future<List<SourceRepository>> starredRepos();
 
   /// Lists all user tags
-  @GET('/tags/list')
+  @GET('/tag/list')
   Future<List<UserTag>> userTags();
 
 }
