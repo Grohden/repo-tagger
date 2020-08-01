@@ -21,10 +21,7 @@ import io.ktor.gson.gson
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.content.default
-import io.ktor.http.content.files
-import io.ktor.http.content.static
-import io.ktor.http.content.staticRootFolder
+import io.ktor.http.content.*
 import io.ktor.request.path
 import io.ktor.response.respond
 import io.ktor.routing.get
@@ -138,10 +135,9 @@ fun Application.moduleWithDependencies(
             trace { application.log.trace(it.buildText()) }
         }
 
-        static("static") {
-            staticRootFolder = File("../frontend/build/web")
-            files(".")
-            default("index.html")
+        static("/") {
+            resources("web")
+            defaultResource("web/index.html")
         }
 
         route("api") {
