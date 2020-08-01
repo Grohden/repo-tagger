@@ -8,6 +8,7 @@ import 'api/tagger/repository_tagger_client.dart';
 import 'generated_env.dart';
 import 'router.dart';
 import 'services/session_service.dart';
+import 'ui/organisms/adaptive_dialog.dart';
 import 'ui/pages/home/home_page.dart' show HomeBinding, HomePage;
 import 'ui/pages/login/login_page.dart' show LoginBinding, LoginPage;
 import 'ui/pages/register/register_page.dart';
@@ -39,6 +40,10 @@ class TaggerApp extends StatelessWidget {
 
           await session.clearToken();
           Router.getOffAllToLogin();
+          Get.dialog(AdaptiveDialog.alert(
+            title: const Text('Log in required'),
+            content: const Text('Your session is not valid anymore'),
+          ));
         }
       }))
       ..interceptors.add(
