@@ -22,6 +22,7 @@ dependencies:
   # Misc
   logger: ^0.9.1
   shared_preferences: ^0.5.8
+  flutter_typeahead_web: ">=1.0.0 <2.0.0"
 
   # FIXME: may not be needed.
   cupertino_icons: ^0.1.3
