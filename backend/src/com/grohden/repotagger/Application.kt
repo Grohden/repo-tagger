@@ -92,7 +92,7 @@ fun Application.makeClient(): HttpClient {
     return HttpClient(CIO) {
         install(Logging) {
             level = when {
-                isDev -> LogLevel.BODY
+                isDev -> LogLevel.INFO
                 isTesting -> LogLevel.INFO
                 else -> LogLevel.NONE
             }
