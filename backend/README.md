@@ -20,6 +20,14 @@ Once you have correct env variables on your path run:
 
 And you will have the tagger app ready at [http://localhost:8080](http://localhost:8080).
 
+### Logs
+
+Almost all logs are disabled by default, you can enable
+them by changing `resources/application.conf` `environment` entry
+to `dev`.
+
+A more fine grained control can be achieved by editing `logback.xml`
+
 ### Unit Testing
 
 Once you have correct env variables on your path run:
