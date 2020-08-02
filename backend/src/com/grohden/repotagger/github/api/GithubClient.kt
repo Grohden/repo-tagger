@@ -6,6 +6,14 @@ import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 
+
+private const val API_BASE = "https://api.github.com"
+private const val RAW_API_BASE = "https://raw.githubusercontent.com"
+
+data class RepositoryOwner(
+    val login: String
+)
+
 data class GithubRepository(
     val id: Int,
     val name: String,
@@ -13,13 +21,27 @@ data class GithubRepository(
     val url: String,
     val language: String?,
     val topics: List<String>,
+    val owner: RepositoryOwner,
+
+    @SerializedName("default_branch")
+    val defaultBranch: String,
+
+    @SerializedName("contents_url")
+    val contentsUrl: String,
 
     @SerializedName("stargazers_count")
     val stargazersCount: Int,
 
     @SerializedName("forks_count")
     val forksCount: Int
-)
+) {
+
+    // May not be really available (no readme)
+    // FIXME: this could be improved and built on
+    //  on the facade layer (or service when available)
+    val readmeUrl: String
+        get() = "$RAW_API_BASE/${owner.login}/${name}/${defaultBranch}/README.md"
+}
 
 typealias GithubRepositories = List<GithubRepository>
 
@@ -27,8 +49,6 @@ data class UserData(
     val id: Int,
     val login: String
 )
-
-private const val API_BASE = "https://api.github.com"
 
 /**
  * Github api client

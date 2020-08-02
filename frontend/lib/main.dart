@@ -86,6 +86,7 @@ class TaggerApp extends StatelessWidget {
         accentColor: Colors.lightBlueAccent,
       ),
       initialRoute: Routes.splash,
+      navigatorKey: Get.key,
       getPages: [
         GetPage(
           name: Routes.splash,

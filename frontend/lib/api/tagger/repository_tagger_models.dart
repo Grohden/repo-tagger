@@ -86,6 +86,7 @@ class DetailedSourceRepository {
     @required this.stargazersCount,
     @required this.userTags,
     @required this.forksCount,
+    @required this.readmeUrl,
   });
 
   final int id;
@@ -104,6 +105,9 @@ class DetailedSourceRepository {
 
   @JsonKey(name: 'forks_count')
   final int forksCount;
+
+  @JsonKey(name: 'readme_url')
+  final String readmeUrl;
 
   factory DetailedSourceRepository.fromJson(Map<String, dynamic> json) =>
       _$DetailedSourceRepositoryFromJson(json);

@@ -6,6 +6,7 @@ import com.grohden.repotagger.dao.tables.User
 import com.grohden.repotagger.dao.tables.UserTagDTO
 import com.grohden.repotagger.dao.tables.toDTOList
 import com.grohden.repotagger.github.api.GithubClient
+import com.grohden.repotagger.github.api.RepositoryOwner
 import io.ktor.application.call
 import io.ktor.auth.authenticate
 import io.ktor.auth.authentication
@@ -35,8 +36,14 @@ data class DetailedRepository(
     @SerializedName("stargazers_count")
     val stargazersCount: Int,
 
+    @SerializedName("forks_count")
+    val forksCount: Int,
+
     @SerializedName("user_tags")
-    val userTags: List<UserTagDTO>
+    val userTags: List<UserTagDTO>,
+
+    @SerializedName("readme_url")
+    val readmeUrl: String
 )
 
 fun Route.repository(dao: DAOFacade, github: GithubClient) {
@@ -88,7 +95,9 @@ fun Route.repository(dao: DAOFacade, github: GithubClient) {
                         url = githubRepo.url,
                         language = githubRepo.language,
                         stargazersCount = githubRepo.stargazersCount,
-                        userTags = tags
+                        userTags = tags,
+                        readmeUrl = githubRepo.readmeUrl,
+                        forksCount = githubRepo.forksCount
                     )
                 )
             }

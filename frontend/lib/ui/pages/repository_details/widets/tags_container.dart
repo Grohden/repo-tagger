@@ -13,7 +13,7 @@ class TagsContainer extends GetView<RepositoryDetailsController> {
     // FIXME: underlying third party lib is applying a really
     //  nice side effect on our list here :DDDD (by removing some items of it)
     //  for now this is surprisingly.. useful (?)
-    final tags = controller.repo.value.userTags;
+    final tags = controller.repository.value.userTags;
 
     return FlutterTagging<UserTag>(
       initialItems: tags,

@@ -8,7 +8,11 @@ class RepositoryDetailsController extends GetxController {
 
   final showLoading = false.obs;
   final hasLoadError = false.obs;
-  final repo = Rx<DetailedSourceRepository>(null);
+  final repository = Rx<DetailedSourceRepository>(null);
+
+  final showReadmeLoading = false.obs;
+  final readmeLoadError = false.obs;
+  final readmeContents = ''.obs;
 
   List<UserTag> _allUserTags;
 
@@ -24,7 +28,12 @@ class RepositoryDetailsController extends GetxController {
     hasLoadError.value = false;
 
     try {
-      repo.value = await tagger.detailedRepo(repoId);
+      repository.value = await tagger.detailedRepo(repoId);
+
+      // Theoretically we should'nt need to await readme load
+      // but this **provably** causes a race condition
+      // on get set state fn
+      await loadReadme();
     } on Exception catch (error) {
       print(error);
       hasLoadError.value = true;
@@ -33,10 +42,35 @@ class RepositoryDetailsController extends GetxController {
     }
   }
 
+  /// Loads the readme contents from the repository,
+  /// may fail for unknown reasons, and in that case
+  /// it flags [readmeLoadError] as true
+  Future loadReadme() async {
+    try {
+      showReadmeLoading.value = true;
+      readmeLoadError.value = false;
+      print(repository.value.readmeUrl);
 
+      // We don't want to use the app dio instance
+      // because it's meant to be used with repository tagger
+      // and adds some unnecessary interceptors
+      final response = await Dio().get<String>(repository.value.readmeUrl);
+
+      readmeContents.value = response.data;
+    } on DioError catch (error) {
+      readmeLoadError.value = true;
+      print(error);
+    } finally {
+      showReadmeLoading.value = false;
+    }
+  }
+
+  /// Adds new tag into the current repository
+  /// in case the flag name is already present
+  /// at [repository] userTags this call is a noop
   Future<UserTag> addTag(UserTag tag) async {
-    final foundTag = repo.value.userTags.firstWhere(
-      (current) =>  current.name.toLowerCase() == tag.name.toLowerCase(),
+    final foundTag = repository.value.userTags.firstWhere(
+      (current) => current.name.toLowerCase() == tag.name.toLowerCase(),
       orElse: () => null,
     );
 
@@ -59,6 +93,8 @@ class RepositoryDetailsController extends GetxController {
     return null;
   }
 
+  /// Removes a tag from a repository
+  /// server errors are ignored
   void removeTag(UserTag tag) async {
     try {
       tagger.removeTag(
@@ -70,8 +106,13 @@ class RepositoryDetailsController extends GetxController {
     }
   }
 
+  /// Finds a tags suggestion list
+  ///
+  /// It uses the user tags endpoint and caches it, tags
+  /// are then matched with [query] and removed if
+  /// they're found on [currentTags]
   Future<List<UserTag>> findSuggestions(String query) async {
-    final currentTags = repo.value.userTags;
+    final currentTags = repository.value.userTags;
 
     if (_allUserTags == null) {
       _allUserTags = await tagger.userTags();

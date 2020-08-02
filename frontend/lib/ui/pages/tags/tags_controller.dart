@@ -14,6 +14,10 @@ class TagsController extends GetxController {
 
   void onInit() async {
     super.onInit();
+    load();
+  }
+
+  void load() async {
     showLoading.value = true;
     hasLoadError.value = false;
     try {
