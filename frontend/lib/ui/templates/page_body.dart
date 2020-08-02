@@ -15,7 +15,7 @@ class PageBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
-    final maxWidth = min(media.size.width, 600);
+    final maxWidth = min(media.size.width, 1024);
 
     return Padding(
       padding: const EdgeInsets.all(kStandardPadding),

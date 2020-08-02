@@ -20,7 +20,7 @@ class UserTagDAO(id: EntityID<Int>) : IntEntity(id) {
 
 
 fun List<UserTagDAO>.toDTOList(): List<UserTagDTO> {
-    return map { UserTagDTO(it) }
+    return map(::UserTagDTO)
 }
 
 class UserTagDTO(

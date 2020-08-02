@@ -12,6 +12,7 @@ import io.ktor.auth.authentication
 import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
 import io.ktor.routing.Route
+import io.ktor.routing.delete
 import io.ktor.routing.get
 import io.ktor.routing.route
 
@@ -61,7 +62,6 @@ fun Route.repository(dao: DAOFacade, github: GithubClient) {
                 val user = call.authentication.principal<User>()!!
                 val repos = dao
                     .findRepositoriesByUserTag(user.id.value, tagId)
-                    .toDTOList()
 
                 call.respond(HttpStatusCode.OK, repos)
             }
@@ -71,12 +71,12 @@ fun Route.repository(dao: DAOFacade, github: GithubClient) {
              *
              * returns a list of [DetailedRepository]
              */
-            get("/detail/{githubId}") {
+            get("/details/{githubId}") {
                 val githubId = call.parameters["githubId"]!!.toInt()
                 val user = call.authentication.principal<User>()!!
                 val taggerRepo = dao.findUserRepositoryByGithubId(user, githubId)
                 val tags = taggerRepo?.let {
-                    dao.findUserTagsByRepository(user.id.value, it.id.value)
+                    dao.findUserTagsByRepository(user.id.value, it.id)
                 } ?: listOf()
                 val githubRepo = github.repositoryById(githubId)
 
@@ -91,6 +91,31 @@ fun Route.repository(dao: DAOFacade, github: GithubClient) {
                         userTags = tags
                     )
                 )
+            }
+
+            /**
+             * Removes a tag registry from a repository
+             *
+             * Receives a repository githubId and a userTagId
+             *
+             * Returns OK response
+             */
+            delete("{githubId}/remove-tag/{userTagId}") {
+                val user = call.authentication.principal<User>()!!
+                val githubId = call.parameters["githubId"]!!.toInt()
+                val tagId = call.parameters["userTagId"]!!.toInt()
+
+                val tag = dao.findUserTagById(
+                    tagId = tagId,
+                    userId = user.id.value
+                )!!
+                val repo = dao.findUserRepositoryByGithubId(
+                    user = user,
+                    githubId = githubId
+                )!!
+
+                dao.removeUserTagFromRepository(tag.id, repo.id)
+                call.respond(HttpStatusCode.OK)
             }
         }
     }

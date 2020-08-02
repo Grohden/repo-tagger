@@ -12,10 +12,7 @@ import io.ktor.auth.authentication
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receiveOrNull
 import io.ktor.response.respond
-import io.ktor.routing.Route
-import io.ktor.routing.get
-import io.ktor.routing.post
-import io.ktor.routing.route
+import io.ktor.routing.*
 
 fun Route.userTag(
     dao: DAOFacade,
@@ -31,19 +28,19 @@ fun Route.userTag(
              */
             get("/list") {
                 val user = call.authentication.principal<User>()!!
-                val tags = dao
-                    .findUserTags(user)
-                    .toDTOList()
+                val tags = dao.findUserTags(user)
 
                 call.respond(HttpStatusCode.OK, tags)
             }
 
             /**
+             * FIXME: should be moved to repository
+             *
              * Registers a user tag on a repository
              *
              * Receives a [CreateTagInput]
              *
-             * Returns OK response
+             * Returns OK response with the newly created [UserTagDTO]
              */
             post("/add") {
                 val input = call.receiveOrNull<CreateTagInput>()!!
@@ -62,15 +59,14 @@ fun Route.userTag(
                     )
                 }
 
-                val tag = dao.createOrFindUserTag(user, input.tagName)
+                val tag = dao.createOrFindUserTag(user, input.tagName).also { tag ->
+                    dao.createTagRelationToRepository(
+                        tagId = tag.id,
+                        repositoryId = repo.id
+                    )
+                }
 
-                dao.addUserTagInRepository(tag, repo)
-                call.respond(HttpStatusCode.OK)
-            }
-
-            post("/remove") {
-                val input = call.receiveOrNull<CreateTagInput>()
-
+                call.respond(HttpStatusCode.OK, tag)
             }
         }
     }

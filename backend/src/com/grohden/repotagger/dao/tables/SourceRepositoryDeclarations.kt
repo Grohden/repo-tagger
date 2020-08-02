@@ -42,11 +42,15 @@ fun List<SourceRepositoryDAO>.toDTOList(): List<SourceRepositoryDTO> {
 }
 
 class SourceRepositoryDTO(
+    val id: Int,
+    val githubId: Int,
     var name: String,
     var description: String,
     var url: String
 ) {
     constructor(dao: SourceRepositoryDAO) : this(
+        id = dao.id.value,
+        githubId = dao.githubId,
         name = dao.name,
         description = dao.description,
         url = dao.url

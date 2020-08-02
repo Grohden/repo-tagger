@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../api/tagger/repository_tagger_client.dart';
+import '../../../router.dart';
 import '../../../services/session_service.dart';
-import '../../extensions/scroll_controller.dart';
 import '../../molecules/load_page_error.dart';
 import '../../molecules/page_title.dart';
 import '../../templates/page_body.dart';
-import '../../../router.dart';
 
 part 'starred_bindings.dart';
 

@@ -10,7 +10,6 @@ part 'repository_tagger_models.dart';
 /// A repository tagger client for dart
 @RestApi()
 abstract class RepositoryTaggerClient {
-
   /// Creates a github tagger api client
   factory RepositoryTaggerClient(
     Dio dio, {
@@ -37,11 +36,21 @@ abstract class RepositoryTaggerClient {
 
   /// Lists a authorized user repository details (with user tags)
   /// given based on the given id
-  @GET('/repository/detail/{id}')
-  Future<SourceRepository> detailedRepo(@Path('id') int id);
+  @GET('/repository/details/{id}')
+  Future<DetailedSourceRepository> detailedRepo(@Path('id') int id);
+
+  /// Add a new tag on a repository
+  @POST('/tag/add')
+  Future<UserTag> addTag(@Body() CreateTagInput input);
+
+  /// Removes a tag from a repository
+  @DELETE('/repository/{githubId}/remove-tag/{userTagId}')
+  Future removeTag({
+    @required @Path('githubId') int githubId,
+    @required @Path('userTagId') int userTagId,
+  });
 
   /// Lists all user tags
   @GET('/tag/list')
   Future<List<UserTag>> userTags();
-
 }

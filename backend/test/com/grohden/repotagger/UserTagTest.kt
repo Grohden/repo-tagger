@@ -2,6 +2,7 @@ package com.grohden.repotagger
 
 import com.grohden.repotagger.dao.CreateTagInput
 import com.grohden.repotagger.dao.CreateUserInput
+import com.grohden.repotagger.dao.tables.UserTagDTO
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -10,18 +11,24 @@ import io.ktor.server.testing.setBody
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldNotBeEmpty
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class UserTagTest : BaseTest() {
+    @BeforeTest
+    fun setupBefore() {
+        memoryDao.init()
+    }
+
+    @AfterTest
+    fun setupAfter() {
+        memoryDao.dropAll()
+    }
+
     @Test
-    fun `should create and list tag`() = testApp(getInMemoryDao()) { dao ->
-        val user = dao.createUser(
-            CreateUserInput(
-                name = "grohden",
-                displayName = "Gabriel",
-                password = "123456"
-            )
-        )
+    fun `should create and list tag`() = testApp {
+        val user = createDefaultUser()
 
         handleRequest(HttpMethod.Post, "/api/tag/add") {
             withContentType(ContentType.Application.Json)
@@ -33,14 +40,18 @@ class UserTagTest : BaseTest() {
         }.apply {
             requestHandled shouldBe true
             response.status() shouldBeEqualTo HttpStatusCode.OK
+            response.content.let {
+                gson.fromJson(it, UserTagDTO::class.java)
+            }.name shouldBeEqualTo "jojo"
         }
 
-        dao.findUserTags(user).shouldNotBeEmpty()
-        // Can't test it :DDD
-        // https://github.com/JetBrains/Exposed/issues/848#issuecomment-630813355
-        // Strangely, this works with the server. Hikari may be interfering.
+        val tags = memoryDao.findUserTags(user).apply {
+            shouldNotBeEmpty()
+        }
 
-        // val jojo = tags.first()
-        // jojo.name shouldBeEqualTo "jojo"
+        tags.first().apply {
+            name shouldBeEqualTo "jojo"
+        }
+
     }
 }

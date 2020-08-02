@@ -12,9 +12,13 @@ data class GithubRepository(
     val description: String,
     val url: String,
     val language: String?,
+    val topics: List<String>,
 
     @SerializedName("stargazers_count")
-    val stargazersCount: Int
+    val stargazersCount: Int,
+
+    @SerializedName("forks_count")
+    val forksCount: Int
 )
 
 typealias GithubRepositories = List<GithubRepository>

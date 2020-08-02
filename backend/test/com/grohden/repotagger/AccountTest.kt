@@ -13,23 +13,30 @@ import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldBeGreaterThan
 import org.amshove.kluent.shouldNotBeNullOrBlank
 import kotlin.test.BeforeTest
+import kotlin.test.AfterTest
 import kotlin.test.Test
 
 class AccountTest : BaseTest() {
     @BeforeTest
     fun setupBefore() {
-        mockFindUserByCredential()
+        memoryDao.init()
+    }
+
+    @AfterTest
+    fun setupAfter() {
+        memoryDao.dropAll()
     }
 
     @Test
     fun `login should succeed with token`() = testApp {
+        val user = createDefaultUser()
+
         handleRequest(HttpMethod.Post, "/api/login") {
             withContentType(ContentType.Application.Json)
-            setBody(
-                UserPasswordCredential(
-                    name = DEFAULT_USER,
-                    password = DEFAULT_PASS
-                ).let { gson.toJson(it) })
+            setBody(UserPasswordCredential(
+                name = user.name,
+                password = DEFAULT_PASS
+            ).let { gson.toJson(it) })
         }.apply {
             requestHandled shouldBe true
             response.status() shouldBeEqualTo HttpStatusCode.OK
@@ -47,12 +54,10 @@ class AccountTest : BaseTest() {
 
     @Test
     fun `request with token should pass`() = testApp {
-        val name = "grohden"
-        mockFindUserByCredential(userName = name)
-        mockFindUserById(userName = name)
+        val user = createDefaultUser()
 
         handleRequest(HttpMethod.Get, "/api/repository/starred") {
-            withAuthorization(userName = name)
+            withAuthorization(user)
         }.apply {
             requestHandled shouldBe true
             response.status() shouldBeEqualTo HttpStatusCode.OK
@@ -62,9 +67,6 @@ class AccountTest : BaseTest() {
 
     @Test
     fun `register user should succeed`() = testApp {
-        // Mockk returns a empty stub.
-        every { mockedDao.findUserByUserName(any()) } returns null
-
         handleRequest(HttpMethod.Post, "/api/register") {
             withContentType(ContentType.Application.Json)
             setBody(
@@ -83,13 +85,13 @@ class AccountTest : BaseTest() {
 
     @Test
     fun `register duplicated userName should fail`() = testApp {
+        val user = createDefaultUser()
         val body = CreateUserInput(
-            name = "grohden",
+            name = user.name,
             password = "123456",
             displayName = "Johnny Test"
         ).let { gson.toJson(it) }
 
-        // user is already mocked, and theoretically already on DB
         handleRequest(HttpMethod.Post, "/api/register") {
             withContentType(ContentType.Application.Json)
             setBody(body)
