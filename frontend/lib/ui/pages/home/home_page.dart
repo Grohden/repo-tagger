@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../../../router.dart';
 import '../../../services/session_service.dart';
+import '../../templates/two_slot_container.dart';
 import '../starred/starred_page.dart';
 import '../tags/tags_page.dart';
 import 'widgets/sidebar.dart';
@@ -18,49 +19,35 @@ class HomePage extends GetView<HomeController> {
     return GetX(
       init: controller,
       builder: (_) => Scaffold(
-        body: Row(
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            _buildSidebar(context),
-            Expanded(
-              child: _buildPage(),
-            )
-          ],
+        body: SafeArea(
+          child: TwoSlotContainer(
+            leftSlot: _buildSidebar(context),
+            rightSlot: _buildPage(),
+          ),
         ),
       ),
     );
   }
 
   Widget _buildSidebar(BuildContext context) {
-    final theme = Theme.of(context);
     final currentRoute = controller.currentRoute;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border(
-          right: BorderSide(
-            color: theme.dividerColor,
-            width: 1,
-          ),
+    return Sidebar(
+      onLogout: controller.onLogout,
+      content: [
+        SideBarButton(
+          icon: const Icon(Icons.star_border),
+          label: const Text('Starred repos'),
+          selected: currentRoute.value == 0,
+          onPressed: () => currentRoute.value = 0,
         ),
-      ),
-      child: Sidebar(
-        content: [
-          SideBarButton(
-            icon: const Icon(Icons.star_border),
-            label: const Text('Starred repos'),
-            selected: currentRoute.value == 0,
-            onPressed: () => currentRoute.value = 0,
-          ),
-          SideBarButton(
-            icon: const Icon(Icons.label_outline),
-            label: const Text('Tags'),
-            selected: currentRoute.value == 1,
-            onPressed: () => currentRoute.value = 1,
-          ),
-        ],
-        onLogout: controller.onLogout,
-      ),
+        SideBarButton(
+          icon: const Icon(Icons.label_outline),
+          label: const Text('Tags'),
+          selected: currentRoute.value == 1,
+          onPressed: () => currentRoute.value = 1,
+        ),
+      ],
     );
   }
 
