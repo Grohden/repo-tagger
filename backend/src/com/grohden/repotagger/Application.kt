@@ -1,16 +1,16 @@
 package com.grohden.repotagger
 
-import com.grohden.repotagger.api.account
 import com.grohden.repotagger.api.repository
+import com.grohden.repotagger.api.session
 import com.grohden.repotagger.api.userTag
 import com.grohden.repotagger.dao.DAOFacade
 import com.grohden.repotagger.dao.DAOFacadeDatabase
 import com.grohden.repotagger.github.api.GithubClient
-import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.application.*
 import io.ktor.auth.Authentication
-import io.ktor.auth.jwt.jwt
+import io.ktor.auth.OAuthServerSettings
+import io.ktor.auth.oauth
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.features.json.GsonSerializer
@@ -22,16 +22,22 @@ import io.ktor.gson.gson
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.content.defaultResource
-import io.ktor.http.content.resources
-import io.ktor.http.content.static
+import io.ktor.http.content.*
+import io.ktor.request.host
 import io.ktor.request.path
+import io.ktor.request.port
 import io.ktor.response.respond
 import io.ktor.routing.route
 import io.ktor.routing.routing
 import io.ktor.server.netty.EngineMain
+import io.ktor.sessions.SessionStorageMemory
+import io.ktor.sessions.SessionTransportTransformerMessageAuthentication
+import io.ktor.sessions.Sessions
+import io.ktor.sessions.cookie
+import io.ktor.util.hex
 import org.jetbrains.exposed.sql.Database
 import org.slf4j.event.Level
+import java.io.File
 
 /**
  * Pool of JDBC connections used.
@@ -50,6 +56,8 @@ fun main(args: Array<String>) {
     EngineMain.main(args)
 }
 
+@Suppress("EXPERIMENTAL_API_USAGE")
+val secretSignKey = hex(EnvProvider.hashKeySecret)
 
 @Suppress("EXPERIMENTAL_API_USAGE")
 fun Application.getEnv(entry: String) =
@@ -113,13 +121,30 @@ fun Application.module() {
     moduleWithDependencies(dao = dao)
 }
 
-fun Application.moduleWithDependencies(dao: DAOFacade) {
-    val client = makeClient()
-    val github = GithubClient(client)
-
-    install(DefaultHeaders) {
-        header(HttpHeaders.Server, "") // OWASP recommended
+private fun ApplicationCall.redirectUrl(path: String): String {
+    val defaultPort = if (request.origin.scheme == "http") 80 else 443
+    val hostPort = request.host() + request.port().let { port ->
+        if (port == defaultPort) "" else ":$port"
     }
+    val protocol = request.origin.scheme
+    return "$protocol://$hostPort$path"
+}
+
+
+fun Application.moduleWithDependencies(dao: DAOFacade) {
+    val httpClient = makeClient()
+    val githubClient = GithubClient(httpClient)
+
+    install(Sessions) {
+        cookie<TaggerSessionUser>(
+            TAGGER_SESSION_COOKIE,
+            SessionStorageMemory()
+        ) {
+            transform(SessionTransportTransformerMessageAuthentication(secretSignKey))
+        }
+    }
+
+    install(DefaultHeaders)
 
     install(ConditionalHeaders)
 
@@ -136,25 +161,35 @@ fun Application.moduleWithDependencies(dao: DAOFacade) {
             method(HttpMethod.Patch)
             header(HttpHeaders.Authorization)
             header(HttpHeaders.ContentType)
+            header(HttpHeaders.Cookie)
+            header(HttpHeaders.SetCookie)
+            header(HttpHeaders.AccessControlAllowCredentials)
+            header(HttpHeaders.AccessControlAllowOrigin)
             allowCredentials = true
-            anyHost() // @TODO: Don't do this in production if possible. Try to limit it.
+            allowSameOrigin = true
+            anyHost()
         }
     }
 
     install(DataConversion)
 
-    val jwtIssuer = getEnv("jwt.domain")
-    val jwtAudience = getEnv("jwt.audience")
-    val jwtRealm = getEnv("jwt.realm")
-    val jwtProvider = JwtProvider(jwtIssuer, jwtAudience)
+    val githubOAuthProvider = OAuthServerSettings.OAuth2ServerSettings(
+        name = "github",
+        authorizeUrl = "https://github.com/login/oauth/authorize",
+        accessTokenUrl = "https://github.com/login/oauth/access_token",
+        clientId = EnvProvider.githubClientId ?: "",
+        clientSecret = EnvProvider.githubClientSecret ?: "",
+        defaultScopes = listOf("read:user", "public_repo")
+    )
 
+    /**
+     * Sets on internal http client the provider rules
+     */
     install(Authentication) {
-        jwt {
-            realm = jwtRealm
-            verifier(jwtProvider.verifier)
-            validate {
-                it.payload.getClaim("id").asInt()?.let(dao::findUserById)
-            }
+        oauth("github") {
+            client = httpClient
+            providerLookup = { githubOAuthProvider }
+            urlProvider = { redirectUrl("/login") }
         }
     }
 
@@ -162,6 +197,12 @@ fun Application.moduleWithDependencies(dao: DAOFacade) {
         // TODO: retry kotlinx serialization, had some problems with
         //  kotlin dsl in gradle buildscript
         gson()
+    }
+
+    install(StatusPages) {
+        exception<NoSessionException> {
+            call.respond(HttpStatusCode.Unauthorized)
+        }
     }
 
     routing {
@@ -175,23 +216,14 @@ fun Application.moduleWithDependencies(dao: DAOFacade) {
         }
 
         route("api") {
-            account(dao, github, jwtProvider)
-            repository(dao, github)
-            userTag(dao, github)
-        }
-
-        install(StatusPages) {
-            exception<AuthenticationException> {
-                call.respond(HttpStatusCode.Unauthorized)
-            }
-            exception<AuthorizationException> {
-                call.respond(HttpStatusCode.Forbidden)
-            }
+            session(
+                usePersonalToken = isDev || isTesting,
+                githubClient = githubClient,
+                githubOAuthProvider = githubOAuthProvider
+            )
+            repository(dao, githubClient)
+            userTag(githubClient, dao)
         }
     }
 }
-
-
-class AuthenticationException : RuntimeException()
-class AuthorizationException : RuntimeException()
 

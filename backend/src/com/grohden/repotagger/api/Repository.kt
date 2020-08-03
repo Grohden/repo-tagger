@@ -1,15 +1,11 @@
 package com.grohden.repotagger.api
 
-import com.google.gson.annotations.SerializedName
 import com.grohden.repotagger.dao.DAOFacade
-import com.grohden.repotagger.dao.tables.User
+import com.grohden.repotagger.dao.tables.SourceRepositoryDTO
 import com.grohden.repotagger.dao.tables.UserTagDTO
-import com.grohden.repotagger.dao.tables.toDTOList
 import com.grohden.repotagger.github.api.GithubClient
-import com.grohden.repotagger.github.api.RepositoryOwner
+import com.grohden.repotagger.requireSession
 import io.ktor.application.call
-import io.ktor.auth.authenticate
-import io.ktor.auth.authentication
 import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
 import io.ktor.routing.Route
@@ -19,113 +15,183 @@ import io.ktor.routing.route
 
 /**
  * Represents a detailed repository, meaning that
- * it contains user related values
- *
- * Note: this is basically the same
- * as the [SourceRepository] model, but that model
- * is exclusive for github api, so it shouldn't contain
- * any domain specific data.
+ * it contains user related values (tags)
  */
 data class DetailedRepository(
-    val id: Int,
+    val githubId: Int,
     val name: String,
-    val description: String,
-    val url: String,
+    val description: String?,
+    val htmlUrl: String,
     val language: String?,
-
-    @SerializedName("stargazers_count")
+    val ownerName: String,
     val stargazersCount: Int,
-
-    @SerializedName("forks_count")
     val forksCount: Int,
-
-    @SerializedName("user_tags")
     val userTags: List<UserTagDTO>,
-
-    @SerializedName("readme_url")
-    val readmeUrl: String
+    val readmeContents: String?
 )
 
-fun Route.repository(dao: DAOFacade, github: GithubClient) {
-    authenticate {
-        route("/repository") {
-            /**
-             * List user starred repositories
-             */
-            get("/starred") {
-                val user = call.authentication.principal<User>()!!
-                val starred = github.userStarred(user.name)
+/**
+ * Represents a more simpler repository, meaning
+ * that it has the necessary data to be used
+ * on a list
+ */
+data class SimpleRepository(
+    val githubId: Int,
+    val name: String,
+    val description: String?,
+    val language: String?,
+    val ownerName: String,
+    val stargazersCount: Int,
+    val forksCount: Int
+)
 
-                call.respond(starred)
-            }
+fun List<SourceRepositoryDTO>.toSimpleRepositoryList(): List<SimpleRepository> {
+    return map { repo ->
+        SimpleRepository(
+            githubId = repo.repositoryGithubId,
+            name = repo.name,
+            ownerName = repo.ownerName,
+            description = repo.description,
+            language = repo.language,
+            stargazersCount = repo.stargazersCount,
+            forksCount = repo.forksCount
+        )
+    }
+}
 
-            /**
-             * List repositories that are related to the given tag id
-             *
-             * returns a list of [SourceRepositoryDTO]
-             */
-            get("/all-by-tag/{tagId}") {
-                val tagId = call.parameters["tagId"]!!.toInt()
-                val user = call.authentication.principal<User>()!!
-                val repos = dao
-                    .findRepositoriesByUserTag(user.id.value, tagId)
 
-                call.respond(HttpStatusCode.OK, repos)
-            }
-
-            /**
-             * List a repository in a more detailed manner given a github id
-             *
-             * returns a list of [DetailedRepository]
-             */
-            get("/details/{githubId}") {
-                val githubId = call.parameters["githubId"]!!.toInt()
-                val user = call.authentication.principal<User>()!!
-                val taggerRepo = dao.findUserRepositoryByGithubId(user, githubId)
-                val tags = taggerRepo?.let {
-                    dao.findUserTagsByRepository(user.id.value, it.id)
-                } ?: listOf()
-                val githubRepo = github.repositoryById(githubId)
-
-                call.respond(
-                    HttpStatusCode.OK, DetailedRepository(
-                        id = githubRepo.id,
-                        name = githubRepo.name,
-                        description = githubRepo.description,
-                        url = githubRepo.url,
-                        language = githubRepo.language,
-                        stargazersCount = githubRepo.stargazersCount,
-                        userTags = tags,
-                        readmeUrl = githubRepo.readmeUrl,
-                        forksCount = githubRepo.forksCount
-                    )
+fun Route.repository(
+    dao: DAOFacade,
+    githubClient: GithubClient
+) {
+    route("/repository") {
+        /**
+         * List user starred repositories
+         *
+         * return s a list of [SimpleRepository]
+         */
+        get("/starred") {
+            val session = call.requireSession()
+            // FIXME: this needs a cache
+            val starred = githubClient.userStarred(session.token)
+            val list = starred.map { githubRepo ->
+                SimpleRepository(
+                    githubId = githubRepo.id,
+                    name = githubRepo.name,
+                    ownerName = githubRepo.owner.login,
+                    description = githubRepo.description,
+                    language = githubRepo.language,
+                    stargazersCount = githubRepo.stargazersCount,
+                    forksCount = githubRepo.forksCount
                 )
             }
 
-            /**
-             * Removes a tag registry from a repository
-             *
-             * Receives a repository githubId and a userTagId
-             *
-             * Returns OK response
-             */
-            delete("{githubId}/remove-tag/{userTagId}") {
-                val user = call.authentication.principal<User>()!!
-                val githubId = call.parameters["githubId"]!!.toInt()
-                val tagId = call.parameters["userTagId"]!!.toInt()
+            call.respond(list)
+        }
 
-                val tag = dao.findUserTagById(
-                    tagId = tagId,
-                    userId = user.id.value
-                )!!
-                val repo = dao.findUserRepositoryByGithubId(
-                    user = user,
-                    githubId = githubId
-                )!!
+        /**
+         * List all tags associated to a repository
+         *
+         * returns a list of [UserTagDTO]
+         */
+        get("/{githubId}/tags") {
+            val session = call.requireSession()
+            val repoGithubId = call.parameters["githubId"]!!.toInt()
+            val taggerRepo = dao.findUserRepositoryByGithubId(
+                userGithubId = session.githubUserId,
+                repoGithubId = repoGithubId
+            )
+            // TODO: return error for repo null.
+            val tags = taggerRepo?.let {
+                dao.findUserTagsByRepository(
+                    userGithubId = session.githubUserId,
+                    repoId = taggerRepo.repoId
+                )
+            } ?: listOf()
 
-                dao.removeUserTagFromRepository(tag.id, repo.id)
-                call.respond(HttpStatusCode.OK)
+            call.respond(HttpStatusCode.OK, tags)
+        }
+
+        /**
+         * List a repository in a more detailed manner given a github id
+         *
+         * returns a list of [DetailedRepository]
+         */
+        get("/details/{githubId}") {
+            val repoGithubId = call.parameters["githubId"]!!.toInt()
+            val session = call.requireSession()
+            val taggerRepo = dao.findUserRepositoryByGithubId(
+                userGithubId = session.githubUserId,
+                repoGithubId = repoGithubId
+            )
+            val tags = taggerRepo?.let {
+                dao.findUserTagsByRepository(
+                    userGithubId = session.githubUserId,
+                    repoId = it.repoId
+                )
+            } ?: listOf()
+            val githubRepo = githubClient.repositoryById(
+                id = repoGithubId,
+                token = session.token
+            )
+
+            // TODO: skip this for tests
+            val readme: String? = try {
+                githubClient.getFileContents(
+                    ownerLogin = githubRepo.owner.login,
+                    name = githubRepo.name,
+                    defaultBranch = githubRepo.defaultBranch,
+                    file = "README.md",
+                    token = session.token
+                )
+            } catch (pokemon: Throwable) {
+                // TODO: use default logger instead
+                print(pokemon.message)
+                null
             }
+
+            call.respond(
+                HttpStatusCode.OK, DetailedRepository(
+                    githubId = githubRepo.id,
+                    name = githubRepo.name,
+                    ownerName = githubRepo.owner.login,
+                    description = githubRepo.description,
+                    htmlUrl = githubRepo.htmlUrl,
+                    language = githubRepo.language,
+                    stargazersCount = githubRepo.stargazersCount,
+                    userTags = tags,
+                    readmeContents = readme,
+                    forksCount = githubRepo.forksCount
+                )
+            )
+        }
+
+        /**
+         * Removes a tag registry from a repository
+         *
+         * Receives a repository githubId and a userTagId
+         *
+         * Returns OK response
+         */
+        delete("{githubId}/remove-tag/{userTagId}") {
+            val session = call.requireSession()
+            val repoGithubId = call.parameters["githubId"]!!.toInt()
+            val tagId = call.parameters["userTagId"]!!.toInt()
+
+            val tag = dao.findUserTagById(
+                tagId = tagId,
+                userGithubId = session.githubUserId
+            )!!
+            val repo = dao.findUserRepositoryByGithubId(
+                userGithubId = session.githubUserId,
+                repoGithubId = repoGithubId
+            )!!
+
+            dao.removeUserTagFromRepository(
+                tagId = tag.tagId,
+                repoId = repo.repoId
+            )
+            call.respond(HttpStatusCode.OK)
         }
     }
 }

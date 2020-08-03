@@ -1,13 +1,9 @@
 package com.grohden.repotagger.dao
 
-import com.grohden.repotagger.PasswordHash
 import com.grohden.repotagger.dao.tables.*
-import io.ktor.auth.UserPasswordCredential
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.io.Closeable
 
 /**
  * Dao interface can be used to provide concrete implementations
@@ -26,86 +22,70 @@ interface DAOFacade {
     fun init()
 
     /**
-     * Create a user based on [user]
-     */
-    fun createUser(user: CreateUserInput): User
-
-    /**
      * Finds a user repository by a given github id, or null if not found
-     *
-     * [githubId] the github id for this repository
      */
-    fun findUserRepositoryByGithubId(user: User, githubId: Int): SourceRepositoryDTO?
+    fun findUserRepositoryByGithubId(userGithubId: Int, repoGithubId: Int): SourceRepositoryDTO?
 
     /**
      * Creates a user tag relation with a repository
+     *
+     * Note: repo id refers to internal repo id, not githubRepoId!
      */
-    fun createTagRelationToRepository(tagId: Int, repositoryId: Int)
+    fun createTagRelationToRepository(tagId: Int, repoId: Int)
 
     /**
      * Removes a user tag relation with a repository
+     *
+     * Note: repo id refers to internal repo id, not githubRepoId!
      */
-    fun removeUserTagFromRepository(tagId: Int, repositoryId: Int)
+    fun removeUserTagFromRepository(tagId: Int, repoId: Int)
 
     /**
      * Creates a source repository related to a specific user
      */
     fun createUserRepository(
-        user: User,
+        userGithubId: Int,
+        repoGithubId: Int,
         name: String,
-        githubId: Int,
-        description: String,
-        url: String
+        ownerName: String,
+        htmlUrl: String,
+        description: String?,
+        language: String?,
+        stargazersCount: Int,
+        forksCount: Int
     ): SourceRepositoryDTO
 
     /**
      * Find all repositories related to a user and a tag
      */
-    fun findRepositoriesByUserTag(userId: Int, tagId: Int): List<SourceRepositoryDTO>
-
-    /**
-     * Find a user based on [credentials], which means that
-     * at least userName and password should be matching
-     *
-     * Note: Implementations are expected to be applying a hash
-     * function to compare the given password.
-     */
-    fun findUserByCredentials(credentials: UserPasswordCredential): User?
-
-    /**
-     * Find a user based on it's id
-     */
-    fun findUserById(id: Int): User?
-
-    /**
-     * Find a user based on it's name
-     */
-    fun findUserByUserName(name: String): User?
+    fun findRepositoriesByUserTag(userGithubId: Int, tagId: Int): List<SourceRepositoryDTO>
 
     /**
      * Finds or creates a new tag associated to a user
      */
-    fun createOrFindUserTag(user: User, tagName: String): UserTagDTO
+    fun createOrFindUserTag(userGithubId: Int, tagName: String): UserTagDTO
 
     /**
      * Creates a user tag
      */
-    fun createUserTag(user: User, tagName: String): UserTagDTO
+    fun createUserTag(userGithubId: Int, tagName: String): UserTagDTO
 
     /**
      * Finds all tags that a user has created in a repository
+     *
+     * Note: repo id refers to internal repo id, not githubRepoId!
      */
-    fun findUserTagsByRepository(userId: Int, repositoryId: Int): List<UserTagDTO>
+    fun findUserTagsByRepository(userGithubId: Int, repoId: Int): List<UserTagDTO>
 
     /**
      * Finds a single tag that a user has created
      */
-    fun findUserTagById(userId: Int, tagId: Int): UserTagDTO?
+    fun findUserTagById(userGithubId: Int, tagId: Int): UserTagDTO?
 
     /**
      * Finds all tags that a user has created
      */
-    fun findUserTags(user: User): List<UserTagDTO>
+    fun findUserTags(userGithubId: Int): List<UserTagDTO>
 }
 
 
@@ -122,29 +102,21 @@ class DAOFacadeDatabase(
 
         // Create the used tables
         SchemaUtils.create(
-            UsersTable,
             UserTagsTable,
             SourceRepositoryTable,
             SourceRepoUserTagTable
         )
     }
 
-    override fun createUser(user: CreateUserInput): User = transaction(db) {
-        User.new {
-            name = user.name.toLowerCase()
-            displayName = user.displayName
-            passwordHash = PasswordHash.hash(user.password)
-        }
-    }
 
     override fun findUserRepositoryByGithubId(
-        user: User,
-        githubId: Int
+        userGithubId: Int,
+        repoGithubId: Int
     ): SourceRepositoryDTO? = transaction(db) {
         SourceRepositoryDAO
             .find {
-                SourceRepositoryTable.githubId eq githubId and
-                        (SourceRepositoryTable.user eq user.id)
+                SourceRepositoryTable.repositoryGithubId eq repoGithubId and
+                        (SourceRepositoryTable.userGithubId eq userGithubId)
             }
             .firstOrNull()
             ?.let(::SourceRepositoryDTO)
@@ -152,11 +124,11 @@ class DAOFacadeDatabase(
 
     override fun createTagRelationToRepository(
         tagId: Int,
-        repositoryId: Int
+        repoId: Int
     ): Unit = transaction(db) {
         val tag = UserTagDAO.findById(tagId)
             ?: throw EntityNotFound("UserTag")
-        val repository = SourceRepositoryDAO.findById(repositoryId)
+        val repository = SourceRepositoryDAO.findById(repoId)
             ?: throw EntityNotFound("SourceRepository")
 
         SourceRepoUserTagTable.insert {
@@ -167,44 +139,31 @@ class DAOFacadeDatabase(
 
     override fun removeUserTagFromRepository(
         tagId: Int,
-        repositoryId: Int
+        repoId: Int
     ): Unit = transaction(db) {
         // Limit is just a sanity check..
         SourceRepoUserTagTable.deleteWhere(limit = 1) {
-            SourceRepoUserTagTable.repository eq repositoryId and
+            SourceRepoUserTagTable.repository eq repoId and
                     (SourceRepoUserTagTable.tag eq tagId)
         }
     }
 
-    override fun findUserByCredentials(credentials: UserPasswordCredential): User? = transaction(db) {
-        val hashed = PasswordHash.hash(credentials.password)
-        val effectiveName = credentials.name.toLowerCase()
-
-        User.find {
-            UsersTable.name eq effectiveName and (UsersTable.passwordHash eq hashed)
-        }.firstOrNull()
-    }
-
-    override fun findUserById(id: Int): User? = transaction(db) {
-        User.findById(id)
-    }
-
-    override fun findUserByUserName(name: String): User? = transaction(db) {
-        User
-            .find { UsersTable.name eq name.toLowerCase() }
-            .firstOrNull()
-    }
-
-    override fun createOrFindUserTag(user: User, tagName: String): UserTagDTO = transaction(db) {
+    override fun createOrFindUserTag(
+        userGithubId: Int,
+        tagName: String
+    ): UserTagDTO = transaction(db) {
         UserTagDAO
-            .find { UserTagsTable.name eq tagName }
+            .find {
+                UserTagsTable.tagName eq tagName and
+                        (UserTagsTable.userGithubId eq userGithubId)
+            }
             .singleOrNull()
             ?.let(::UserTagDTO)
-            ?: createUserTag(user, tagName)
+            ?: createUserTag(userGithubId, tagName)
     }
 
     override fun findRepositoriesByUserTag(
-        userId: Int,
+        userGithubId: Int,
         tagId: Int
     ): List<SourceRepositoryDTO> = transaction(db) {
         (SourceRepositoryTable innerJoin SourceRepoUserTagTable)
@@ -212,46 +171,57 @@ class DAOFacadeDatabase(
             .select {
                 SourceRepoUserTagTable.repository eq SourceRepositoryTable.id and
                         (SourceRepoUserTagTable.tag eq tagId) and
-                        (SourceRepositoryTable.user eq userId)
+                        (SourceRepositoryTable.userGithubId eq userGithubId)
             }
             .let { SourceRepositoryDAO.wrapRows(it) }
             .toList()
             .toDTOList()
     }
 
-    override fun createUserTag(user: User, tagName: String): UserTagDTO = transaction(db) {
+    override fun createUserTag(
+        userGithubId: Int,
+        tagName: String
+    ): UserTagDTO = transaction(db) {
         UserTagDAO.new {
-            this.user = user
-            this.name = tagName
+            this.tagName = tagName
+            this.userGithubId = userGithubId
         }.let(::UserTagDTO)
     }
 
     override fun createUserRepository(
-        user: User,
+        userGithubId: Int,
+        repoGithubId: Int,
         name: String,
-        githubId: Int,
-        description: String,
-        url: String
+        ownerName: String,
+        htmlUrl: String,
+        description: String?,
+        language: String?,
+        stargazersCount: Int,
+        forksCount: Int
     ): SourceRepositoryDTO = transaction(db) {
         SourceRepositoryDAO.new {
-            this.user = user
+            this.userGithubId = userGithubId
+            this.repositoryGithubId = repoGithubId
             this.name = name
-            this.githubId = githubId
-            this.url = url
+            this.ownerName = ownerName
             this.description = description
+            this.htmlUrl = htmlUrl
+            this.language = language
+            this.stargazersCount = stargazersCount
+            this.forksCount = forksCount
         }.let(::SourceRepositoryDTO)
     }
 
     override fun findUserTagsByRepository(
-        userId: Int,
-        repositoryId: Int
+        userGithubId: Int,
+        repoId: Int
     ): List<UserTagDTO> = transaction(db) {
         (UserTagsTable innerJoin SourceRepoUserTagTable)
             .slice(UserTagsTable.columns)
             .select {
                 SourceRepoUserTagTable.tag eq UserTagsTable.id and
-                        (SourceRepoUserTagTable.repository eq repositoryId) and
-                        (UserTagsTable.user eq userId)
+                        (SourceRepoUserTagTable.repository eq repoId) and
+                        (UserTagsTable.userGithubId eq userGithubId)
             }
             .let { UserTagDAO.wrapRows(it) }
             .toList()
@@ -259,22 +229,21 @@ class DAOFacadeDatabase(
     }
 
     override fun findUserTagById(
-        userId: Int,
+        userGithubId: Int,
         tagId: Int
     ): UserTagDTO? = transaction(db) {
         UserTagsTable
             .select {
-                UserTagsTable.id eq tagId and
-                        (UserTagsTable.user eq userId)
+                UserTagsTable.id eq tagId and (UserTagsTable.userGithubId eq userGithubId)
             }
             .let { UserTagDAO.wrapRows(it) }
             .firstOrNull()
             ?.let(::UserTagDTO)
     }
 
-    override fun findUserTags(user: User): List<UserTagDTO> = transaction(db) {
+    override fun findUserTags(userGithubId: Int): List<UserTagDTO> = transaction(db) {
         UserTagDAO
-            .find { UserTagsTable.user eq user.id }
+            .find { UserTagsTable.userGithubId eq userGithubId }
             .toList()
             .toDTOList()
     }
@@ -283,7 +252,6 @@ class DAOFacadeDatabase(
     @TestOnly
     fun dropAll() = transaction(db) {
         SchemaUtils.drop(
-            UsersTable,
             UserTagsTable,
             SourceRepositoryTable,
             SourceRepoUserTagTable

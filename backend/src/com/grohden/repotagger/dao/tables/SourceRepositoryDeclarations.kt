@@ -8,11 +8,7 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 /**
  * Represents a github source repository
  *
- * It contains basic data about it
- *
- * FIXME: we don't need to store
- *  name or description, just the githubId should be
- *  enough
+ * It contains only an association between a user and a repo githubId
  *
  * Note: it's not recommended to expose
  * the id field to api consumers, instead
@@ -20,39 +16,57 @@ import org.jetbrains.exposed.dao.id.IntIdTable
  * on userId and githubId.
  */
 object SourceRepositoryTable : IntIdTable(name = "source_repository") {
-    val name = varchar("name", 100)
-    val description = text("description")
-    val url = text("url")
-    val user = reference("user", UsersTable)
-    val githubId = integer("github_id")
+    val userGithubId = integer("user_github_id")
+    val repositoryGithubId = integer("repository_github_id")
+    val name = text("repo_name")
+    val ownerName = text("repo_owner_name")
+    val htmlUrl = text("repo_url")
+    val language = text("repo_language").nullable()
+    val description = text("repo_description").nullable()
+    val stargazersCount = integer("stargazersCount")
+    val forksCount = integer("forksCount")
 }
 
 class SourceRepositoryDAO(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<SourceRepositoryDAO>(SourceRepositoryTable)
 
+    var userGithubId by SourceRepositoryTable.userGithubId
+    var repositoryGithubId by SourceRepositoryTable.repositoryGithubId
     var name by SourceRepositoryTable.name
-    var githubId by SourceRepositoryTable.githubId
+    var ownerName by SourceRepositoryTable.ownerName
+    var htmlUrl by SourceRepositoryTable.htmlUrl
+    var language by SourceRepositoryTable.language
     var description by SourceRepositoryTable.description
-    var url by SourceRepositoryTable.url
-    var user by User referencedOn SourceRepositoryTable.user
+    var stargazersCount by SourceRepositoryTable.stargazersCount
+    var forksCount by SourceRepositoryTable.forksCount
 }
 
 fun List<SourceRepositoryDAO>.toDTOList(): List<SourceRepositoryDTO> {
     return map { SourceRepositoryDTO(it) }
 }
 
-class SourceRepositoryDTO(
-    val id: Int,
-    val githubId: Int,
-    var name: String,
-    var description: String,
-    var url: String
+data class SourceRepositoryDTO(
+    val repoId: Int,
+    val userGithubId: Int,
+    val repositoryGithubId: Int,
+    val name: String,
+    val ownerName: String,
+    val htmlUrl: String,
+    val language: String?,
+    val description: String?,
+    val stargazersCount: Int,
+    val forksCount: Int
 ) {
     constructor(dao: SourceRepositoryDAO) : this(
-        id = dao.id.value,
-        githubId = dao.githubId,
+        repoId = dao.id.value,
+        userGithubId = dao.userGithubId,
+        repositoryGithubId = dao.repositoryGithubId,
         name = dao.name,
+        ownerName = dao.ownerName,
+        htmlUrl = dao.htmlUrl,
+        language = dao.language,
         description = dao.description,
-        url = dao.url
+        stargazersCount = dao.stargazersCount,
+        forksCount = dao.forksCount
     )
 }

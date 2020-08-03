@@ -1,16 +1,15 @@
 package com.grohden.repotagger
 
 import com.grohden.repotagger.dao.CreateTagInput
-import com.grohden.repotagger.dao.CreateUserInput
 import com.grohden.repotagger.dao.tables.UserTagDTO
-import io.ktor.http.ContentType
-import io.ktor.http.HttpMethod
+import com.grohden.repotagger.extensions.fromJson
+import com.grohden.repotagger.utils.createTag
+import com.grohden.repotagger.utils.listAlTags
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.handleRequest
-import io.ktor.server.testing.setBody
+import io.ktor.server.testing.cookiesSession
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
-import org.amshove.kluent.shouldNotBeEmpty
+import org.amshove.kluent.shouldContain
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -28,30 +27,32 @@ class UserTagTest : BaseTest() {
 
     @Test
     fun `should create and list tag`() = testApp {
-        val user = createDefaultUser()
+        cookiesSession {
+            login()
+            createTag(
+                CreateTagInput(
+                    tagName = "jojo",
+                    repoGithubId = 130309267
+                )
+            ).apply {
+                requestHandled shouldBe true
+                response.status() shouldBeEqualTo HttpStatusCode.OK
+                response.content.let {
+                    gson.fromJson(it, UserTagDTO::class.java)
+                }.tagName shouldBeEqualTo "jojo"
+            }
 
-        handleRequest(HttpMethod.Post, "/api/tag/add") {
-            withContentType(ContentType.Application.Json)
-            withAuthorization(user)
-            setBody(CreateTagInput(
-                tagName = "jojo",
-                repoGithubId = 130309267
-            ).let { gson.toJson(it) })
-        }.apply {
-            requestHandled shouldBe true
-            response.status() shouldBeEqualTo HttpStatusCode.OK
-            response.content.let {
-                gson.fromJson(it, UserTagDTO::class.java)
-            }.name shouldBeEqualTo "jojo"
+
+            listAlTags().apply {
+                requestHandled shouldBe true
+                response.status() shouldBeEqualTo HttpStatusCode.OK
+                val tags = response.content!!.let {
+                    gson.fromJson<List<UserTagDTO>>(it)
+                }.map { it.tagName }
+
+
+                tags shouldContain "jojo"
+            }
         }
-
-        val tags = memoryDao.findUserTags(user).apply {
-            shouldNotBeEmpty()
-        }
-
-        tags.first().apply {
-            name shouldBeEqualTo "jojo"
-        }
-
     }
 }

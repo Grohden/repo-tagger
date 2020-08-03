@@ -12,6 +12,7 @@ This project is written in kotlin using ktor and exposed.
 
 * JDK
 * Env variables set, see `.env.example` on root folder
+* Github personal access token (env) for development only
 
 ### Run server
 

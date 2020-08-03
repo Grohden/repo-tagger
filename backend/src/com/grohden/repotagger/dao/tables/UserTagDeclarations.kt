@@ -6,16 +6,15 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 
 object UserTagsTable : IntIdTable(name = "user_tags") {
-    val name = text("name")
-    val user = reference("user", UsersTable)
+    val tagName = text("name")
+    val userGithubId = integer("user_github_id")
 }
 
 class UserTagDAO(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<UserTagDAO>(UserTagsTable)
 
-    var name by UserTagsTable.name
-    var user by User referencedOn UserTagsTable.user
-    var repositories by SourceRepositoryDAO via SourceRepoUserTagTable
+    var tagName by UserTagsTable.tagName
+    var userGithubId by UserTagsTable.userGithubId
 }
 
 
@@ -23,12 +22,14 @@ fun List<UserTagDAO>.toDTOList(): List<UserTagDTO> {
     return map(::UserTagDTO)
 }
 
-class UserTagDTO(
-    val id: Int,
-    val name: String
+data class UserTagDTO(
+    val tagId: Int,
+    val tagName: String,
+    val userGithubId: Int
 ) {
     constructor(dao: UserTagDAO) : this(
-        id = dao.id.value,
-        name = dao.name
+        tagId = dao.id.value,
+        tagName = dao.tagName,
+        userGithubId = dao.userGithubId
     )
 }

@@ -1,19 +1,21 @@
 package com.grohden.repotagger
 
 import com.grohden.repotagger.api.DetailedRepository
-import com.grohden.repotagger.dao.CreateUserInput
-import com.grohden.repotagger.dao.tables.SourceRepositoryDTO
+import com.grohden.repotagger.api.SimpleRepository
+import com.grohden.repotagger.dao.CreateTagInput
+import com.grohden.repotagger.dao.tables.UserTagDTO
 import com.grohden.repotagger.extensions.fromJson
-import io.ktor.http.ContentType
-import io.ktor.http.HttpMethod
+import com.grohden.repotagger.utils.*
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.handleRequest
+import io.ktor.server.testing.cookiesSession
 import org.amshove.kluent.*
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class RepositoryTest : BaseTest() {
+    private val defaultRepoId = 130309267
+
     @BeforeTest
     fun setupBefore() {
         memoryDao.init()
@@ -26,129 +28,101 @@ class RepositoryTest : BaseTest() {
 
     @Test
     fun `should list all tags of a repository`() = testApp {
-        val user = memoryDao.createUser(
-            CreateUserInput(
-                name = "grohden",
-                displayName = "Gabriel",
-                password = "123456"
-            )
-        )
+        cookiesSession {
+            login()
 
-        val repository = memoryDao.createUserRepository(
-            user = user,
-            githubId = 130309267,
-            name = "Johnny test",
-            description = "test",
-            url = ""
-        )
-
-        val tags = listOf(
-            memoryDao.createUserTag(user, "dart"),
-            memoryDao.createUserTag(user, "kotlin")
-        )
-
-        tags.forEach { tag ->
-            memoryDao.createTagRelationToRepository(tag.id, repository.id)
-        }
-
-
-        handleRequest(HttpMethod.Get, "/api/repository/details/${repository.githubId}") {
-            withContentType(ContentType.Application.Json)
-            withAuthorization(user)
-        }.apply {
-            requestHandled shouldBe true
-            response.status() shouldBeEqualTo HttpStatusCode.OK
-            response.content shouldNotBe null
-
-            val repo = response.content!!.let {
-                gson.fromJson<DetailedRepository>(it)
+            val tags = listOf(
+                CreateTagInput(
+                    tagName = "javascript",
+                    repoGithubId = defaultRepoId
+                ),
+                CreateTagInput(
+                    tagName = "dart",
+                    repoGithubId = defaultRepoId
+                )
+            ).also { list ->
+                list.forEach { createTag(it) }
             }
 
-            repo.userTags.map { it.name }
-                .shouldContainAll(tags.map { it.name })
+            repositoryDetails(defaultRepoId).apply {
+                requestHandled shouldBe true
+                response.status() shouldBeEqualTo HttpStatusCode.OK
+                response.content shouldNotBe null
+
+                val remoteTags = response.content!!.let {
+                    gson.fromJson<DetailedRepository>(it)
+                }.userTags.map { it.tagName }
+
+                remoteTags shouldContainAll (tags.map { it.tagName })
+            }
         }
     }
 
+
     @Test
     fun `should list all repositories of a tag`() = testApp {
-        val user = memoryDao.createUser(
-            CreateUserInput(
-                name = "grohden",
-                displayName = "Gabriel",
-                password = "123456"
-            )
-        )
+        cookiesSession {
+            login()
 
-        val tag = memoryDao.createUserTag(user, "dart")
-        val repositories = listOf(
-            memoryDao.createUserRepository(
-                user = user,
-                githubId = 130309267,
-                name = "Johnny test",
-                description = "test",
-                url = ""
-            )
-        )
+            val firstTag = createTag(
+                CreateTagInput(
+                    tagName = "dart",
+                    repoGithubId = defaultRepoId
+                )
+            ).let { gson.fromJson<UserTagDTO>(it.response.content!!) }
 
-        repositories.forEach { repository ->
-            memoryDao.createTagRelationToRepository(tag.id, repository.id)
-        }
+            val secondTag = createTag(
+                CreateTagInput(
+                    tagName = "dart",
+                    repoGithubId = defaultRepoId + 1
+                )
+            ).let { gson.fromJson<UserTagDTO>(it.response.content!!) }
 
-        handleRequest(HttpMethod.Get, "/api/repository/all-by-tag/${tag.id}") {
-            withContentType(ContentType.Application.Json)
-            withAuthorization(user)
-        }.apply {
-            requestHandled shouldBe true
-            response.status() shouldBeEqualTo HttpStatusCode.OK
-            response.content shouldNotBe null
+            // Should be the same tag
+            firstTag.tagId shouldBeEqualTo secondTag.tagId
 
-            val repos = response.content!!.let {
-                gson.fromJson<List<SourceRepositoryDTO>>(it)
+
+            listRepositoriesOfATag(firstTag.tagId).apply {
+                requestHandled shouldBe true
+                response.status() shouldBeEqualTo HttpStatusCode.OK
+                response.content shouldNotBe null
+
+                val remoteTags = response.content!!.let {
+                    gson.fromJson<List<SimpleRepository>>(it)
+                }.map { it.githubId }
+
+                remoteTags shouldContainAll listOf(
+                    defaultRepoId,
+                    defaultRepoId + 1
+                )
             }
-
-            repos.map { it.name }
-                .shouldContainAll(repositories.map { it.name })
         }
     }
 
 
     @Test
     fun `should delete a tag of a repository`() = testApp {
-        val user = memoryDao.createUser(
-            CreateUserInput(
-                name = "grohden",
-                displayName = "Gabriel",
-                password = "123456"
-            )
-        )
+        cookiesSession {
+            login()
+            val tag = createTag(
+                CreateTagInput(
+                    tagName = "dart",
+                    repoGithubId = defaultRepoId
+                )
+            ).let { gson.fromJson<UserTagDTO>(it.response.content!!) }
 
-        val repository = memoryDao.createUserRepository(
-            user = user,
-            githubId = 130309267,
-            name = "Johnny test",
-            description = "test",
-            url = ""
-        )
-        val tag = memoryDao.createUserTag(user, "dart")
-
-        memoryDao.createTagRelationToRepository(tag.id, repository.id)
+            deleteRepoTag(defaultRepoId, tag.tagId).apply {
+                requestHandled shouldBe true
+                response.status() shouldBeEqualTo HttpStatusCode.OK
+                response.content shouldBe null
+            }
 
 
-        handleRequest(
-            HttpMethod.Delete,
-            "/api/repository/${repository.githubId}/remove-tag/${tag.id}"
-        ) {
-            withContentType(ContentType.Application.Json)
-            withAuthorization(user)
-        }.apply {
-            requestHandled shouldBe true
-            response.status() shouldBeEqualTo HttpStatusCode.OK
-            response.content shouldBe null
+            listRepositoryTags(defaultRepoId).apply {
+                val tags = gson.fromJson<List<UserTagDTO>>(response.content!!)
+
+                tags.shouldBeEmpty()
+            }
         }
-
-        memoryDao.findUserTagsByRepository(
-            userId = user.id.value,
-            repositoryId = repository.id
-        ).shouldBeEmpty()
     }
 }
