@@ -11,7 +11,7 @@ class RepositoryTaggerCacheClient implements RepositoryTaggerClient {
 
   final RepositoryTaggerClient delegate;
 
-  List<SimpleRepository> _cachedStarredRepos = [];
+  Map<int, List<SimpleRepository>> _cachedStarredRepos = {};
 
   @override
   Future<UserTag> addTag(CreateTagInput input) => delegate.addTag(input);
@@ -36,14 +36,14 @@ class RepositoryTaggerCacheClient implements RepositoryTaggerClient {
       delegate.repositoriesByTag(id);
 
   @override
-  Future<List<SimpleRepository>> starredRepos() async {
-    if (_cachedStarredRepos.isEmpty) {
-      final repos = await delegate.starredRepos();
+  Future<List<SimpleRepository>> starredRepos({int page}) async {
+    if (!_cachedStarredRepos.containsKey(page)) {
+      final repos = await delegate.starredRepos(page: page);
 
-      _cachedStarredRepos = repos;
+      _cachedStarredRepos[page] = repos;
     }
 
-    return _cachedStarredRepos;
+    return _cachedStarredRepos[page];
   }
 
   @override

@@ -2,16 +2,26 @@ import 'package:flutter/material.dart';
 
 import '../../api/tagger/repository_tagger_client.dart';
 import '../molecules/detail_chip.dart';
+import '../molecules/primary_raised_button.dart';
 import 'page_body.dart';
 
 /// Default repository list template
 class RepositoryList extends StatelessWidget {
-  const RepositoryList(
-      {@required this.title, @required this.items, @required this.onOpen});
+  const RepositoryList({
+    @required this.title,
+    @required this.items,
+    @required this.onOpen,
+    this.onLoadMore,
+    this.isLoadingMore,
+  });
 
   final Widget title;
   final List<SimpleRepository> items;
   final Function(SimpleRepository repository) onOpen;
+
+  /// If specified, shows a load more button at the bottom of the page
+  final Function() onLoadMore;
+  final bool isLoadingMore;
 
   @override
   Widget build(BuildContext context) {
@@ -27,12 +37,21 @@ class RepositoryList extends StatelessWidget {
 
   Widget _buildList(BuildContext context) {
     final style = Theme.of(context).textTheme;
+    final offset = onLoadMore != null ? 1 : 0;
 
     return ListView.separated(
-        itemCount: items.length,
+        itemCount: items.length + offset,
         padding: const EdgeInsets.all(kStandardPadding),
         separatorBuilder: (_, __) => const Divider(thickness: 1),
         itemBuilder: (context, index) {
+          if (index >= items.length) {
+            return PrimaryRaisedButton(
+              child: const Text('Load more'),
+              onPressed: onLoadMore,
+              showLoader: isLoadingMore,
+            );
+          }
+
           final item = items[index];
 
           return ListTile(

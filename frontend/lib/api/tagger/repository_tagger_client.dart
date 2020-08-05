@@ -18,7 +18,9 @@ abstract class RepositoryTaggerClient {
 
   /// Lists a authorized user starred repositories
   @GET('/repository/starred')
-  Future<List<SimpleRepository>> starredRepos();
+  Future<List<SimpleRepository>> starredRepos({
+    @Query('page') int page,
+  });
 
   /// Lists all repositories associated with a tag
   @GET('/tag/{tagId}/repositories')

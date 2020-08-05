@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -5,6 +6,7 @@ import '../../../api/tagger/repository_tagger_client.dart';
 import '../../../router.dart';
 import '../../molecules/load_page_error.dart';
 import '../../molecules/page_title.dart';
+import '../../organisms/adaptive_dialog.dart';
 import '../../templates/repository_list.dart';
 import '../../utils/tagger_page.dart';
 
@@ -41,6 +43,8 @@ class StarredPage extends TaggerPage<StarredController> {
       title: const PageTitle('Your starred repositories'),
       onOpen: controller.openRepo,
       items: controller.repositories.value,
+      onLoadMore: controller.loadMore,
+      isLoadingMore: controller.showLoadingMore.value,
     );
   }
 }
