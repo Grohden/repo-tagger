@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../api/tagger/repository_tagger_client.dart';
+import '../../../router.dart';
 import '../../molecules/load_page_error.dart';
 import '../../molecules/page_title.dart';
 
@@ -47,7 +48,10 @@ class TagsPage extends GetView<TagsController> {
             runSpacing: 8,
             children: tags
                 .map(
-                  (tag) => Chip(label: Text(tag.tagName)),
+                  (tag) => ActionChip(
+                    label: Text(tag.tagName),
+                    onPressed: () => controller.openTag(tag),
+                  ),
                 )
                 .toList(),
           )

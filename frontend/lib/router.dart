@@ -33,7 +33,11 @@ class Router {
     Get.offAndToNamed('/repository/$id');
   }
 
-  static void offAndToRepositories(int id) {
+  static void offAndToTag(int id) {
     Get.offAndToNamed('/tag/$id');
+  }
+
+  static void goToTag(int id) {
+    Get.toNamed('/tag/$id');
   }
 }

@@ -25,4 +25,8 @@ class TagsController extends GetxController {
       showLoading.value = false;
     }
   }
+
+  void openTag(UserTag tag) {
+    Router.goToTag(tag.tagId);
+  }
 }

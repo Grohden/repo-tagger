@@ -39,7 +39,7 @@ class RepositoryDetailsController extends GetxController {
   }
 
   void openTag(UserTag tag) {
-    Router.offAndToRepositories(tag.tagId);
+    Router.offAndToTag(tag.tagId);
   }
 
   /// Adds new tag into the current repository
