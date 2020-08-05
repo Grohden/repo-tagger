@@ -26,10 +26,5 @@ flutter packages pub run build_runner build
 flutter run -d chrome
 ```
 
-Note: the app expects the backend to be at localhost 8080, if you
-changed that, before running anything make sure you have dart in the
-path, have the `TAGGER_BASE_URL` variable set (described on .env.example)
-and call:
-````shell script
-dart tools/env_generator.dart
-````
+Note: the app expects the backend to be at localhost 8080. You can manually change this
+in the `main.dart`, for now a env variable is not supported. 
