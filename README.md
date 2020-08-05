@@ -12,7 +12,7 @@ Note: I'm not persisting any data, I'm using an in memory
 DB to avoid heroku limitations, so don't expect your data
 to be there forever.
 
-TODO: add print
+![Record](./screenshots/repo-tagger.gif)
 
 ## What it does?
 
