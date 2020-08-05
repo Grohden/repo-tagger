@@ -7,6 +7,7 @@ class TagRepositoriesController extends GetxController {
   final hasLoadError = false.obs;
   final showLoading = false.obs;
   final repositories = RxList<SimpleRepository>([]);
+  final tagName = ''.obs;
 
   int get tagId => int.parse(Get.parameters['id']);
 
@@ -16,7 +17,9 @@ class TagRepositoriesController extends GetxController {
     hasLoadError.value = false;
 
     try {
-      repositories.value = await tagger.repositoriesByTag(tagId);
+      final data = await tagger.repositoriesByTag(tagId);
+      repositories.value = data.repositories;
+      tagName.value = data.tag.tagName;
     } on Exception catch (error) {
       print(error);
       hasLoadError.value = true;
@@ -27,5 +30,9 @@ class TagRepositoriesController extends GetxController {
 
   void openRepo(SimpleRepository repo) {
     Router.offAndToRepositoryDetails(repo.githubId);
+  }
+
+  void getBack() {
+    Router.getOffAllToHome();
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:repo_tagger/tagger_preferences.dart';
+
+import '../../../../tagger_preferences.dart';
 
 /// Side bar showed on home route
 /// it shows the given [content] and a logout button

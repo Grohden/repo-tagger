@@ -35,7 +35,7 @@ class RepositoryDetailsController extends GetxController {
   }
 
   void getBack() {
-    Router.getOffAllToHome();
+    Router.getOffUntilHome();
   }
 
   void openTag(UserTag tag) {

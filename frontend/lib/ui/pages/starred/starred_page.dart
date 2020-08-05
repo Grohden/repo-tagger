@@ -11,6 +11,8 @@ import '../../utils/tagger_page.dart';
 part 'starred_controller.dart';
 
 class StarredPage extends TaggerPage<StarredController> {
+  const StarredPage({Key key}) : super(key: key);
+
   @override
   StarredController provider() => StarredController();
 

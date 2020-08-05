@@ -3,8 +3,8 @@ part of 'repository_tagger_client.dart';
 @JsonSerializable()
 class CreateTagInput {
   CreateTagInput({
-    this.tagName,
-    this.repoGithubId,
+    @required this.tagName,
+    @required this.repoGithubId,
   });
 
   final String tagName;
@@ -14,6 +14,22 @@ class CreateTagInput {
       _$CreateTagInputFromJson(json);
 
   Map<String, dynamic> toJson() => _$CreateTagInputToJson(this);
+}
+
+@JsonSerializable()
+class TagRepositoriesResponse {
+  TagRepositoriesResponse({
+    @required this.tag,
+    @required this.repositories,
+  });
+
+  final UserTag tag;
+  final List<SimpleRepository> repositories;
+
+  factory TagRepositoriesResponse.fromJson(Map<String, dynamic> json) =>
+      _$TagRepositoriesResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$TagRepositoriesResponseToJson(this);
 }
 
 /// Represents a detailed repository, meaning that

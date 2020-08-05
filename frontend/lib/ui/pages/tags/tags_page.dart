@@ -10,6 +10,8 @@ import '../../utils/tagger_page.dart';
 part 'tags_controller.dart';
 
 class TagsPage extends TaggerPage<TagsController> {
+  const TagsPage({Key key}) : super(key: key);
+
   @override
   TagsController provider() => TagsController();
 

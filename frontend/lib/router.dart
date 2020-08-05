@@ -25,6 +25,13 @@ class Router {
     Get.offAllNamed(Routes.home);
   }
 
+  static void getOffUntilHome() {
+    Get.offNamedUntil(
+      Routes.home,
+      (route) => Get.currentRoute == Routes.home,
+    );
+  }
+
   static void goToRepositoryDetails(int id) {
     Get.toNamed('/repository/$id');
   }

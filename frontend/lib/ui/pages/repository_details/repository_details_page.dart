@@ -9,6 +9,7 @@ import '../../../api/tagger/repository_tagger_client.dart';
 import '../../../router.dart';
 import '../../molecules/detail_chip.dart';
 import '../../molecules/load_page_error.dart';
+import '../../organisms/tagger_back_button.dart';
 import '../../utils/browser.dart';
 import '../../utils/tagger_page.dart';
 import 'widgets/readme_container.dart';
@@ -17,6 +18,8 @@ import 'widgets/tags_container.dart';
 part 'repository_details_controller.dart';
 
 class RepositoryDetailsPage extends TaggerPage<RepositoryDetailsController> {
+  const RepositoryDetailsPage({Key key}) : super(key: key);
+
   @override
   RepositoryDetailsController provider() => RepositoryDetailsController();
 
@@ -114,12 +117,7 @@ class RepositoryDetailsPage extends TaggerPage<RepositoryDetailsController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            BackButton(onPressed: controller.getBack),
-            Text('Repo tagger', style: style.headline5),
-          ],
-        ),
+        TaggerBackButton(),
         const SizedBox(width: 8),
         Row(
           children: [

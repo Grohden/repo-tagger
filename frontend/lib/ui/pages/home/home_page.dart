@@ -11,6 +11,7 @@ import 'widgets/sidebar_button.dart';
 part 'home_controller.dart';
 
 class HomePage extends TaggerPage<HomeController> {
+  const HomePage({Key key}) : super(key: key);
 
   @override
   HomeController provider() => HomeController();
@@ -64,12 +65,12 @@ class HomePage extends TaggerPage<HomeController> {
 
   Widget _buildPage() {
     final routes = [
-      KeyedSubtree(
-        key: const ValueKey(0),
+      const KeyedSubtree(
+        key: ValueKey(0),
         child: StarredPage(),
       ),
-      KeyedSubtree(
-        key: const ValueKey(1),
+      const KeyedSubtree(
+        key: ValueKey(1),
         child: TagsPage(),
       ),
     ];

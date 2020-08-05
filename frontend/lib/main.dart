@@ -3,12 +3,13 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:repo_tagger/tagger_preferences.dart';
 
+import 'api/tagger/repository_tagger_cache_client.dart';
 import 'api/tagger/repository_tagger_client.dart';
 import 'router.dart';
+import 'tagger_preferences.dart';
 import 'ui/organisms/adaptive_dialog.dart';
-import 'ui/pages/home/home_page.dart' show HomeBinding, HomePage;
+import 'ui/pages/home/home_page.dart' show HomeController, HomePage;
 import 'ui/pages/login/login_page.dart' show LoginPage;
 import 'ui/pages/repository_details/repository_details_page.dart';
 import 'ui/pages/splash/splash_page.dart';
@@ -112,15 +113,21 @@ class TaggerApp extends StatelessWidget {
         ),
         GetPage(
           name: Routes.home,
-          page: () => HomePage(),
+          page: () => const HomePage(
+            key: Key('home'),
+          ),
         ),
         GetPage(
           name: Routes.repoDetails,
-          page: () => RepositoryDetailsPage(),
+          page: () => const RepositoryDetailsPage(
+            key: Key('repo-details'),
+          ),
         ),
         GetPage(
           name: Routes.tagRepositories,
-          page: () => TagRepositoriesPage(),
+          page: () => const TagRepositoriesPage(
+            key: Key('tag-repositories'),
+          ),
         ),
         GetPage(
           name: Routes.login,

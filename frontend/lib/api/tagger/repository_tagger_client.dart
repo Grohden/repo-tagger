@@ -22,7 +22,7 @@ abstract class RepositoryTaggerClient {
 
   /// Lists all repositories associated with a tag
   @GET('/tag/{tagId}/repositories')
-  Future<List<SimpleRepository>> repositoriesByTag(@Path('tagId') int id);
+  Future<TagRepositoriesResponse> repositoriesByTag(@Path('tagId') int id);
 
   /// Lists a authorized user repository details (with user tags)
   /// given based on the given id
