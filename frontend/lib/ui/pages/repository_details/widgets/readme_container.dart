@@ -6,10 +6,10 @@ import 'package:markdown/markdown.dart' as md;
 import '../repository_details_page.dart';
 
 /// Controls exhibition of the repository readme
-/// [RepositoryDetailsController] is required to be injected.
-class ReadmeContainer extends GetView<RepositoryDetailsController> {
+class ReadmeContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final controller = Get.find<RepositoryDetailsController>();
     final repo = controller.repository.value;
     final readmeContents = repo.readmeContents;
 

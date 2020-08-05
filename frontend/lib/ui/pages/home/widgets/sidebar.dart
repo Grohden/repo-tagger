@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:repo_tagger/tagger_preferences.dart';
 
 /// Side bar showed on home route
 /// it shows the given [content] and a logout button
@@ -38,10 +39,12 @@ class Sidebar extends StatelessWidget {
       title: const Text('Dark theme'),
       value: Get.isDarkMode,
       onChanged: (active) {
+        final mode = active ? ThemeMode.dark : ThemeMode.light;
         // Theme changing is good, but this is what makes us
         // see that flutter is not really ready for web, as changing
         // theme modes causes the page to hang a little
-        Get.changeThemeMode(active ? ThemeMode.dark : ThemeMode.light);
+        Get.changeThemeMode(mode);
+        taggerPreferences.setThemeMode(mode);
       },
     );
   }

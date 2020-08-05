@@ -5,12 +5,14 @@ import '../../../api/tagger/repository_tagger_client.dart';
 import '../../../router.dart';
 import '../../molecules/load_page_error.dart';
 import '../../molecules/page_title.dart';
-
-part 'tags_bindings.dart';
+import '../../utils/tagger_page.dart';
 
 part 'tags_controller.dart';
 
-class TagsPage extends GetView<TagsController> {
+class TagsPage extends TaggerPage<TagsController> {
+  @override
+  TagsController provider() => TagsController();
+
   @override
   Widget build(BuildContext context) {
     return GetX(

@@ -10,14 +10,16 @@ import '../../../router.dart';
 import '../../molecules/detail_chip.dart';
 import '../../molecules/load_page_error.dart';
 import '../../utils/browser.dart';
+import '../../utils/tagger_page.dart';
 import 'widgets/readme_container.dart';
 import 'widgets/tags_container.dart';
 
-part 'repository_details_bindings.dart';
-
 part 'repository_details_controller.dart';
 
-class RepositoryDetailsPage extends GetView<RepositoryDetailsController> {
+class RepositoryDetailsPage extends TaggerPage<RepositoryDetailsController> {
+  @override
+  RepositoryDetailsController provider() => RepositoryDetailsController();
+
   @override
   Widget build(BuildContext context) {
     return GetX(

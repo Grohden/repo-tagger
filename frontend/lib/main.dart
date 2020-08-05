@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:repo_tagger/tagger_preferences.dart';
 
 import 'api/tagger/repository_tagger_client.dart';
 import 'router.dart';
@@ -83,11 +84,19 @@ class TaggerApp extends StatelessWidget {
   final Dio dio;
   final RepositoryTaggerClient taggerClient;
 
+  void _initSetup() async {
+    await taggerPreferences.init();
+    final mode = taggerPreferences.themeMode();
+
+    Get.changeThemeMode(mode);
+  }
+
   @override
   Widget build(BuildContext context) {
+    _initSetup();
+
     return GetMaterialApp(
       title: 'Repo Tagger',
-      themeMode: ThemeMode.dark,
       theme: ThemeData.light().copyWith(
         primaryColor: Colors.blue,
       ),
@@ -96,7 +105,6 @@ class TaggerApp extends StatelessWidget {
         accentColor: Colors.lightBlueAccent,
       ),
       initialRoute: Routes.splash,
-      navigatorKey: Get.key,
       getPages: [
         GetPage(
           name: Routes.splash,
@@ -105,17 +113,14 @@ class TaggerApp extends StatelessWidget {
         GetPage(
           name: Routes.home,
           page: () => HomePage(),
-          binding: HomeBinding(),
         ),
         GetPage(
           name: Routes.repoDetails,
           page: () => RepositoryDetailsPage(),
-          binding: RepositoryDetailsBinding(),
         ),
         GetPage(
           name: Routes.tagRepositories,
           page: () => TagRepositoriesPage(),
-          binding: TagRepositoriesBinding(),
         ),
         GetPage(
           name: Routes.login,

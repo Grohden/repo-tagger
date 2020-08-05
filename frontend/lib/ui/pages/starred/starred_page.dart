@@ -6,12 +6,14 @@ import '../../../router.dart';
 import '../../molecules/load_page_error.dart';
 import '../../molecules/page_title.dart';
 import '../../templates/repository_list.dart';
-
-part 'starred_bindings.dart';
+import '../../utils/tagger_page.dart';
 
 part 'starred_controller.dart';
 
-class StarredPage extends GetView<StarredController> {
+class StarredPage extends TaggerPage<StarredController> {
+  @override
+  StarredController provider() => StarredController();
+
   @override
   Widget build(BuildContext context) {
     return GetX(

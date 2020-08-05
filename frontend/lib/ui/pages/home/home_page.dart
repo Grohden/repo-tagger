@@ -2,16 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../templates/three_slot_container.dart';
+import '../../utils/tagger_page.dart';
 import '../starred/starred_page.dart';
 import '../tags/tags_page.dart';
 import 'widgets/sidebar.dart';
 import 'widgets/sidebar_button.dart';
 
-part 'home_bindings.dart';
-
 part 'home_controller.dart';
 
-class HomePage extends GetView<HomeController> {
+class HomePage extends TaggerPage<HomeController> {
+
+  @override
+  HomeController provider() => HomeController();
+
   @override
   Widget build(BuildContext context) {
     return GetX(

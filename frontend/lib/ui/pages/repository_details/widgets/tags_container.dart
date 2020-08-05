@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:repo_tagger/ui/utils/tagger_page.dart';
 
 import '../../../../api/tagger/repository_tagger_client.dart';
 import '../../../../external/taggable/taggable.dart';
@@ -7,7 +7,10 @@ import '../repository_details_page.dart';
 
 /// Controls exhibition and creation UI for user tags
 /// [RepositoryDetailsController] is required to be injected.
-class TagsContainer extends GetView<RepositoryDetailsController> {
+class TagsContainer extends TaggerPage<RepositoryDetailsController> {
+  @override
+  RepositoryDetailsController provider() => RepositoryDetailsController();
+
   @override
   Widget build(BuildContext context) {
     // FIXME: underlying third party lib is applying a really
