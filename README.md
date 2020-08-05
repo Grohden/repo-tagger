@@ -5,6 +5,13 @@ A tagger application for github repositories
 It's meant to be a usable application, but also a personal
 experiment on new technologies.
 
+It may be available at:
+https://repo-tagger.herokuapp.com/
+
+Note: I'm not persisting any data, I'm using an in memory
+DB to avoid heroku limitations, so don't expect your data
+to be there forever.
+
 TODO: add print
 
 ## What it does?
