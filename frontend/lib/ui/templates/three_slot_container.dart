@@ -20,17 +20,13 @@ class ThreeSlotContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Row(
       mainAxisSize: MainAxisSize.max,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (leftSlot != null)
-          SizedBox(width: leftWidth, child: leftSlot),
+        if (leftSlot != null) SizedBox(width: leftWidth, child: leftSlot),
         Expanded(child: centralSlot),
-        if (rightSlot != null)
-          SizedBox(width: rightWidth, child: rightSlot)
+        if (rightSlot != null) SizedBox(width: rightWidth, child: rightSlot)
       ],
     );
   }

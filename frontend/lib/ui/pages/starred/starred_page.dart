@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:repo_tagger/ui/templates/repository_list.dart';
 
 import '../../../api/tagger/repository_tagger_client.dart';
 import '../../../router.dart';
-import '../../molecules/detail_chip.dart';
 import '../../molecules/load_page_error.dart';
 import '../../molecules/page_title.dart';
-import '../../templates/page_body.dart';
+import '../../templates/repository_list.dart';
 
 part 'starred_bindings.dart';
 

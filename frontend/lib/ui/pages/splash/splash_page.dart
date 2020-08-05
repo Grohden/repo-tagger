@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:repo_tagger/api/tagger/repository_tagger_client.dart';
 
+import '../../../api/tagger/repository_tagger_client.dart';
 import '../../../router.dart';
 
 /// Initial page that redirects the user

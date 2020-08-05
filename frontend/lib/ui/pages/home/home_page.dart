@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../templates/two_slot_container.dart';
+import '../../templates/three_slot_container.dart';
 import '../starred/starred_page.dart';
 import '../tags/tags_page.dart';
 import 'widgets/sidebar.dart';

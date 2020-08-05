@@ -4,12 +4,12 @@ import 'dart:html';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:repo_tagger/ui/utils/browser.dart';
 
 import '../../../api/tagger/repository_tagger_client.dart';
 import '../../../router.dart';
 import '../../molecules/detail_chip.dart';
 import '../../molecules/load_page_error.dart';
+import '../../utils/browser.dart';
 import 'widgets/readme_container.dart';
 import 'widgets/tags_container.dart';
 
