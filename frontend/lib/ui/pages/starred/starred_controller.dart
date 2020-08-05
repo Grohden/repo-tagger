@@ -34,7 +34,7 @@ class StarredController extends GetxController {
     try {
       showLoadingMore.value = true;
       final more = await tagger.starredRepos(page: _currentPage + 1);
-      repositories.assignAll(more);
+      repositories.addAll(more);
       _currentPage += 1;
     } on DioError catch (error) {
       Get.dialog(
