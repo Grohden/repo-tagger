@@ -71,10 +71,19 @@ class TaggerApp extends StatelessWidget {
       }))
       ..interceptors.add(LogInterceptor(responseBody: false));
 
-    final tagger = Get.put(RepositoryTaggerClient(
-      dio,
-      baseUrl: getTaggerUrl(),
-    ));
+    final tagger = Get.put<RepositoryTaggerClient>(
+      RepositoryTaggerCacheClient(
+        delegate: RepositoryTaggerClient(
+          dio,
+          baseUrl: getTaggerUrl(),
+        ),
+      ),
+    );
+
+    // To fix issues related to
+    // flutter/get url handlers we need to make sure
+    // that get doesn't delete home controller.
+    Get.put(HomeController());
 
     return TaggerApp._(
       dio: dio,
