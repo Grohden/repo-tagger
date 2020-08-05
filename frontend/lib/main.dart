@@ -5,14 +5,29 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'api/tagger/repository_tagger_client.dart';
-import 'generated_env.dart';
 import 'router.dart';
 import 'ui/organisms/adaptive_dialog.dart';
 import 'ui/pages/home/home_page.dart' show HomeBinding, HomePage;
-import 'ui/pages/login/login_page.dart' show LoginBinding, LoginPage;
+import 'ui/pages/login/login_page.dart' show LoginPage;
 import 'ui/pages/repository_details/repository_details_page.dart';
 import 'ui/pages/splash/splash_page.dart';
 import 'ui/pages/tag_repositories/tag_repositories_page.dart';
+import 'ui/utils/browser.dart';
+
+bool get _isInDebugMode {
+  var inDebugMode = false;
+  // Dart removes asserts on prod/release mode.
+  assert(inDebugMode = true);
+  return inDebugMode;
+}
+
+String getTaggerUrl() {
+  if (_isInDebugMode) {
+    return 'http://localhost:8080/api';
+  } else {
+    return '${getOriginUrl()}/api';
+  }
+}
 
 void main() {
   runApp(TaggerApp());
@@ -54,7 +69,10 @@ class TaggerApp extends StatelessWidget {
       }))
       ..interceptors.add(LogInterceptor(responseBody: false));
 
-    final tagger = Get.put(RepositoryTaggerClient(dio, baseUrl: taggerUrl));
+    final tagger = Get.put(RepositoryTaggerClient(
+      dio,
+      baseUrl: getTaggerUrl(),
+    ));
 
     return TaggerApp._(
       dio: dio,

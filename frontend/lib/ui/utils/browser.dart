@@ -7,3 +7,7 @@ void replaceUrl(String url) {
 void openUrlInNewTab(String url) {
   html.window.open(url, '_blank');
 }
+
+String getOriginUrl() {
+  return html.window.location.origin;
+}

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:repo_tagger/ui/utils/browser.dart';
 
-import '../../../generated_env.dart';
+import '../../../main.dart';
 import '../../templates/page_body.dart';
+import '../../utils/browser.dart';
 
 class LoginPage extends StatelessWidget {
   @override
@@ -29,6 +29,6 @@ class LoginPage extends StatelessWidget {
   }
 
   void _openOAuth() {
-    replaceUrl('$taggerUrl/oauth');
+    replaceUrl('${getTaggerUrl()}/oauth');
   }
 }
