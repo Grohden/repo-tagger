@@ -1,0 +1,21 @@
+
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Run backend tests
+      run: cd backend && ./gradlew test
+      env:
+        HASH_KEY_SECRET: ${{secrets.HASH_KEY_SECRET}}
+        PERSONAL_ACCESS_TOKEN: ${{secrets.PERSONAL_ACCESS_TOKEN}}
