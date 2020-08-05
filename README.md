@@ -30,8 +30,7 @@ docker run -m512M --cpus 2 -it --env-file ./.env -p 8080:8080 --rm repo-tagger
 ```
 
 Note: be sure to create the `.env` file with needed variables, they 
-are explained on `.env.example`, you can also use `.env.dev`
-if you wish.
+are explained on `.env.example`
 
 ## Languages and frameworks
 
