@@ -2,6 +2,7 @@ package com.grohden.repotagger
 
 import com.grohden.repotagger.api.DetailedRepository
 import com.grohden.repotagger.api.SimpleRepository
+import com.grohden.repotagger.api.TagRepositoriesResponse
 import com.grohden.repotagger.dao.CreateTagInput
 import com.grohden.repotagger.dao.tables.UserTagDTO
 import com.grohden.repotagger.extensions.fromJson
@@ -88,8 +89,8 @@ class RepositoryTest : BaseTest() {
                 response.content shouldNotBe null
 
                 val remoteTags = response.content!!.let {
-                    gson.fromJson<List<SimpleRepository>>(it)
-                }.map { it.githubId }
+                    gson.fromJson<TagRepositoriesResponse>(it)
+                }.repositories.map { it.githubId }
 
                 remoteTags shouldContainAll listOf(
                     defaultRepoId,

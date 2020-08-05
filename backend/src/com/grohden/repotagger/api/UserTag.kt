@@ -13,6 +13,12 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.route
 
+
+data class TagRepositoriesResponse(
+    val tag: UserTagDTO,
+    val repositories: List<SimpleRepository>
+)
+
 fun Route.userTag(
     githubClient: GithubClient,
     dao: DAOFacade
@@ -35,19 +41,28 @@ fun Route.userTag(
 
 
         /**
-         * Lists all repositories by a tag
+         * Lists all repositories by a tag id
          *
-         * Returns OK and a list of [DetailedRepository]
+         * Returns OK and a list of [TagRepositoriesResponse]
          */
         get("/{tagId}/repositories") {
             val tagId = call.requireIntParam("tagId")
             val session = call.requireSession()
+            val tag = dao.findUserTagById(
+                userGithubId = session.githubUserId,
+                tagId = tagId
+            ) ?: throw NotFound("tag not found")
             val repositories = dao.findRepositoriesByUserTag(
                 userGithubId = session.githubUserId,
                 tagId = tagId
             ).toSimpleRepositoryList()
 
-            call.respond(HttpStatusCode.OK, repositories)
+            call.respond(
+                HttpStatusCode.OK, TagRepositoriesResponse(
+                    tag = tag,
+                    repositories = repositories
+                )
+            )
         }
 
         /**
