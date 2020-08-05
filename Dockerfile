@@ -9,14 +9,14 @@ ENV PATH ${PATH}:${FLUTTER_ROOT}/bin:${FLUTTER_ROOT}/bin/cache/dart-sdk/bin
 
 RUN git clone --branch "beta" --depth 1 https://github.com/flutter/flutter.git ${FLUTTER_ROOT}
 
+# Cached layer for flutter deps
+RUN flutter config --enable-web
+
 # Copy current frontend
 COPY --chown=root:root ./frontend .
 
-# Cached layer for flutter deps
-RUN flutter config --enable-web && flutter packages get
-
 # Generate and build the frontend app
-RUN dart tools/env_generator.dart && \
+RUN flutter packages get && \
     flutter packages pub run build_runner build --delete-conflicting-outputs && \
     flutter build web
 
