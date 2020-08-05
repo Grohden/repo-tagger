@@ -84,8 +84,8 @@ class GithubClient(private val client: HttpClient) {
      *
      * https://docs.github.com/en/rest/reference/activity#list-repositories-starred-by-the-authenticated-user
      */
-    suspend fun userStarred(token: String): GithubRepositories = client.get(
-        urlString = "$API_BASE/user/starred"
+    suspend fun userStarred(token: String, page: Int?): GithubRepositories = client.get(
+        urlString = "$API_BASE/user/starred?page=${page ?: 1}"
     ) {
         withV3Accept()
         withToken(token)

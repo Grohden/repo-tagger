@@ -71,9 +71,10 @@ fun Route.repository(
          * return s a list of [SimpleRepository]
          */
         get("/starred") {
+            val page = call.intParamOrNull("page")
             val session = call.requireSession()
             // FIXME: this needs a cache
-            val starred = githubClient.userStarred(session.token)
+            val starred = githubClient.userStarred(session.token, page)
             val list = starred.map { githubRepo ->
                 SimpleRepository(
                     githubId = githubRepo.id,

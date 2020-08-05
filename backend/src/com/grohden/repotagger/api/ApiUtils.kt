@@ -35,6 +35,18 @@ fun ApplicationCall.requireIntParam(key: String): Int {
 }
 
 /**
+ * Returns a int param or null, if the param is not a valid
+ * it throws [BadRequest]
+ */
+fun ApplicationCall.intParamOrNull(key: String): Int? {
+    return try {
+        parameters[key]?.toInt()
+    } catch (error: NumberFormatException) {
+        throw BadRequest("Arg $key is invalid")
+    }
+}
+
+/**
  * Requires a parameter to be non null and int, otherwise
  * throws [BadRequest]
  */
