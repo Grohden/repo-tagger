@@ -68,8 +68,11 @@ class TaggerApp extends StatelessWidget {
             content: const Text('Your session is not valid anymore'),
           ));
         }
-      }))
-      ..interceptors.add(LogInterceptor(responseBody: false));
+      }));
+
+    if (_isInDebugMode) {
+      dio.interceptors.add(LogInterceptor(responseBody: false));
+    }
 
     final tagger = Get.put<RepositoryTaggerClient>(
       RepositoryTaggerCacheClient(
