@@ -6,28 +6,28 @@ import 'package:get/get.dart';
 class Sidebar extends StatelessWidget {
   const Sidebar({
     @required this.content,
-    @required this.onLogout,
   });
 
   final List<Widget> content;
-  final VoidCallback onLogout;
 
   @override
   Widget build(BuildContext context) {
     const divider = Divider(thickness: 1);
 
     return ListTileTheme(
-      child: SizedBox(
-        width: 275,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            _buildTitle(context),
-            Expanded(child: _buildMainColumn()),
-            _buildLogout(context),
-            divider,
-            _buildChangeTheme(),
-          ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: SizedBox(
+          width: 275,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              _buildTitle(context),
+              Expanded(child: _buildMainColumn()),
+              divider,
+              _buildChangeTheme(),
+            ],
+          ),
         ),
       ),
     );
@@ -43,13 +43,6 @@ class Sidebar extends StatelessWidget {
         // theme modes causes the page to hang a little
         Get.changeThemeMode(active ? ThemeMode.dark : ThemeMode.light);
       },
-    );
-  }
-
-  Widget _buildLogout(BuildContext context) {
-    return ListTile(
-      title: const Text('Logout'),
-      onTap: onLogout,
     );
   }
 

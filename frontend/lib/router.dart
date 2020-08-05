@@ -4,8 +4,8 @@ class Routes {
   static const splash = '/';
   static const home = '/home';
   static const login = '/login';
-  static const register = '/register';
   static const repoDetails = '/repository/:id';
+  static const tagRepositories = '/tag/:id';
 }
 
 class Router {
@@ -15,12 +15,6 @@ class Router {
 
   static void getOffAllToLogin() {
     Get.offAllNamed(Routes.login);
-  }
-
-  /// Opens register page
-  /// and may return a [RegisterUser]
-  static Future<dynamic> goToRegister() async {
-    return Get.toNamed(Routes.register);
   }
 
   static void goToHome() {
@@ -33,5 +27,13 @@ class Router {
 
   static void goToRepositoryDetails(int id) {
     Get.toNamed('/repository/$id');
+  }
+
+  static void offAndToRepositoryDetails(int id) {
+    Get.offAndToNamed('/repository/$id');
+  }
+
+  static void offAndToRepositories(int id) {
+    Get.offAndToNamed('/tag/$id');
   }
 }

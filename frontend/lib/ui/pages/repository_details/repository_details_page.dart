@@ -1,15 +1,17 @@
 import 'dart:async';
+import 'dart:html';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:repo_tagger/ui/utils/browser.dart';
 
 import '../../../api/tagger/repository_tagger_client.dart';
-import '../../../services/session_service.dart';
+import '../../../router.dart';
+import '../../molecules/detail_chip.dart';
 import '../../molecules/load_page_error.dart';
-import '../../templates/two_slot_container.dart';
-import 'widets/readme_container.dart';
-import 'widets/tags_container.dart';
+import 'widgets/readme_container.dart';
+import 'widgets/tags_container.dart';
 
 part 'repository_details_bindings.dart';
 
@@ -37,91 +39,142 @@ class RepositoryDetailsPage extends GetView<RepositoryDetailsController> {
       return const CircularProgressIndicator();
     }
 
-    const padding = EdgeInsets.all(16.0);
     return SafeArea(
-      child: TwoSlotContainer(
-        leftWidth: 425,
-        leftSlot: Padding(
-          padding: padding,
-          child: _buildLeft(context),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            _buildDescriptions(context),
+            Flexible(
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildRepoData(context),
+                  _buildTagsManager(context),
+                ],
+              ),
+            ),
+          ],
         ),
-        rightSlot: Scrollbar(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: padding,
-            child: _buildRight(context),
+      ),
+    );
+  }
+
+  Widget _buildRepoData(BuildContext context) {
+    final theme = Theme.of(context);
+    return Flexible(
+      flex: 2,
+      child: Padding(
+        padding: const EdgeInsets.only(right: 16.0),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(
+              color: theme.dividerColor,
+              width: theme.dividerTheme.thickness ?? 1,
+            ),
+          ),
+          child: Scrollbar(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.all(16.0),
+              child: ReadmeContainer(),
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildRight(BuildContext context) {
+  Widget _buildTagsManager(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final repository = controller.repository.value;
 
-    return SliverFillRemaining(
+    return Flexible(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildTitle(context),
-          const SizedBox(height: 16),
           Text(
-            repository.description,
-            style: textTheme.bodyText1,
+            'Personal tags',
+            style: textTheme.headline6,
           ),
-          const SizedBox(height: 32),
-          ReadmeContainer(),
+          const SizedBox(height: 16),
+          TagsContainer(),
         ],
       ),
     );
   }
 
-  Widget _buildLeft(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+  Widget _buildDescriptions(BuildContext context) {
+    final repository = controller.repository.value;
+    final theme = Theme.of(context);
+    final style = theme.textTheme;
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Personal tags',
-          style: textTheme.headline6,
+        Row(
+          children: [
+            BackButton(onPressed: controller.getBack),
+            Text('Repo tagger', style: style.headline5),
+          ],
+        ),
+        const SizedBox(width: 8),
+        Row(
+          children: [
+            _buildRepositoryTitle(context),
+            if (!repository.language.isNullOrBlank)
+              DetailChip(
+                content: Text(repository.language.toString()),
+                label: const Text('Lang'),
+              ),
+            const SizedBox(width: 8),
+            DetailChip(
+              label: Row(
+                children: const [
+                  Icon(Icons.star_border, size: 14),
+                  SizedBox(width: 8),
+                  Text('Stars'),
+                ],
+              ),
+              content: Text(repository.stargazersCount.toString()),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
-        TagsContainer(),
+        Text(
+          repository.description,
+          style: style.bodyText1,
+        ),
+        const SizedBox(height: 32),
       ],
     );
   }
 
-  Widget _buildTitle(BuildContext context) {
+  Widget _buildRepositoryTitle(BuildContext context) {
     final repository = controller.repository.value;
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final style = theme.textTheme;
 
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            repository.name,
-            style: textTheme.headline3,
+    return Expanded(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(repository.ownerName, style: style.headline5),
+          Text(' / ', style: style.headline5),
+          InkWell(
+            onTap: () {
+              openUrlInNewTab(repository.htmlUrl);
+            },
+            child: Text(
+              repository.name,
+              style: style.headline4.copyWith(
+                color: theme.accentColor,
+                decoration: TextDecoration.underline,
+              ),
+            ),
           ),
-        ),
-        if (!repository.language.isNullOrBlank)
-          Chip(
-            visualDensity: VisualDensity.compact,
-            label: Text(repository.language),
-          ),
-        const SizedBox(width: 8),
-        Chip(
-          visualDensity: VisualDensity.compact,
-          label: Row(
-            children: [
-              const Icon(Icons.star_border, size: 14),
-              const SizedBox(width: 4),
-              Text(repository.stargazersCount.toString()),
-            ],
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

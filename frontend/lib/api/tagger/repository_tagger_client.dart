@@ -16,32 +16,30 @@ abstract class RepositoryTaggerClient {
     @required String baseUrl,
   }) = _RepositoryTaggerClient;
 
-  /// Logs a user based on given [credential]
-  ///
-  /// Returns a [token] which should be user for authenticated
-  /// requests
-  @POST('/login')
-  Future<String> login(@Body() UserPasswordCredential credential);
-
-  /// Registers a user on the system
-  ///
-  /// Returns a confirmation string or error if the user
-  /// already exists in database
-  @POST('/register')
-  Future<String> register(@Body() RegisterUser user);
-
   /// Lists a authorized user starred repositories
   @GET('/repository/starred')
-  Future<List<SourceRepository>> starredRepos();
+  Future<List<SimpleRepository>> starredRepos();
+
+  /// Lists all repositories associated with a tag
+  @GET('/tag/{tagId}/repositories')
+  Future<List<SimpleRepository>> repositoriesByTag(@Path('tagId') int id);
 
   /// Lists a authorized user repository details (with user tags)
   /// given based on the given id
   @GET('/repository/details/{id}')
-  Future<DetailedSourceRepository> detailedRepo(@Path('id') int id);
+  Future<DetailedRepository> detailedRepo(@Path('id') int id);
 
   /// Add a new tag on a repository
   @POST('/tag/add')
   Future<UserTag> addTag(@Body() CreateTagInput input);
+
+  /// Requires oauth redirection from server
+  @GET('/oauth')
+  Future<String> oauth();
+
+  /// Checks if this app/browser has session
+  @GET('/has-session')
+  Future<bool> hasSession();
 
   /// Removes a tag from a repository
   @DELETE('/repository/{githubId}/remove-tag/{userTagId}')

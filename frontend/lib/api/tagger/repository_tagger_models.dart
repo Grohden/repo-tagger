@@ -1,37 +1,6 @@
 part of 'repository_tagger_client.dart';
 
 @JsonSerializable()
-class UserPasswordCredential {
-  UserPasswordCredential({this.name, this.password});
-
-  final String name;
-  final String password;
-
-  factory UserPasswordCredential.fromJson(Map<String, dynamic> json) =>
-      _$UserPasswordCredentialFromJson(json);
-
-  Map<String, dynamic> toJson() => _$UserPasswordCredentialToJson(this);
-}
-
-@JsonSerializable()
-class RegisterUser {
-  RegisterUser({
-    @required this.name,
-    @required this.displayName,
-    @required this.password,
-  });
-
-  final String name;
-  final String displayName;
-  final String password;
-
-  factory RegisterUser.fromJson(Map<String, dynamic> json) =>
-      _$RegisterUserFromJson(json);
-
-  Map<String, dynamic> toJson() => _$RegisterUserToJson(this);
-}
-
-@JsonSerializable()
 class CreateTagInput {
   CreateTagInput({
     this.tagName,
@@ -47,80 +16,77 @@ class CreateTagInput {
   Map<String, dynamic> toJson() => _$CreateTagInputToJson(this);
 }
 
+/// Represents a detailed repository, meaning that
+/// it contains user related values (tags)
 @JsonSerializable()
-class SourceRepository {
-  SourceRepository({
-    @required this.id,
+class DetailedRepository {
+  DetailedRepository({
+    @required this.githubId,
     @required this.name,
     @required this.description,
-    @required this.url,
+    @required this.htmlUrl,
     @required this.language,
+    @required this.ownerName,
     @required this.stargazersCount,
+    @required this.forksCount,
+    @required this.userTags,
+    @required this.readmeContents,
   });
 
-  final int id;
-  final String name;
-  final String description;
-  final String url;
+  int githubId;
+  String name;
+  String description;
+  String htmlUrl;
+  String language;
+  String ownerName;
+  int stargazersCount;
+  int forksCount;
+  List<UserTag> userTags;
+  String readmeContents;
 
-  @JsonKey(nullable: true)
-  final String language;
+  factory DetailedRepository.fromJson(Map<String, dynamic> json) =>
+      _$DetailedRepositoryFromJson(json);
 
-  @JsonKey(name: 'stargazers_count')
-  final int stargazersCount;
-
-  factory SourceRepository.fromJson(Map<String, dynamic> json) =>
-      _$SourceRepositoryFromJson(json);
-
-  Map<String, dynamic> toJson() => _$SourceRepositoryToJson(this);
+  Map<String, dynamic> toJson() => _$DetailedRepositoryToJson(this);
 }
 
+/// Represents a more simpler repository, meaning
+/// that it has the necessary data to be used
+/// on a list
 @JsonSerializable()
-class DetailedSourceRepository {
-  DetailedSourceRepository({
-    @required this.id,
+class SimpleRepository {
+  SimpleRepository({
+    @required this.githubId,
     @required this.name,
     @required this.description,
     @required this.url,
     @required this.language,
+    @required this.ownerName,
     @required this.stargazersCount,
-    @required this.userTags,
     @required this.forksCount,
-    @required this.readmeUrl,
   });
 
-  final int id;
-  final String name;
-  final String description;
-  final String url;
+  int githubId;
+  String name;
+  String description;
+  String url;
+  String language;
+  String ownerName;
+  int stargazersCount;
+  int forksCount;
 
-  @JsonKey(name: 'user_tags', defaultValue: [])
-  final List<UserTag> userTags;
+  factory SimpleRepository.fromJson(Map<String, dynamic> json) =>
+      _$SimpleRepositoryFromJson(json);
 
-  @JsonKey(nullable: true)
-  final String language;
-
-  @JsonKey(name: 'stargazers_count')
-  final int stargazersCount;
-
-  @JsonKey(name: 'forks_count')
-  final int forksCount;
-
-  @JsonKey(name: 'readme_url')
-  final String readmeUrl;
-
-  factory DetailedSourceRepository.fromJson(Map<String, dynamic> json) =>
-      _$DetailedSourceRepositoryFromJson(json);
-
-  Map<String, dynamic> toJson() => _$DetailedSourceRepositoryToJson(this);
+  Map<String, dynamic> toJson() => _$SimpleRepositoryToJson(this);
 }
 
 @JsonSerializable()
 class UserTag {
-  UserTag({@required this.id, @required this.name});
+  UserTag({@required this.tagId, @required this.tagName});
 
-  final int id;
-  final String name;
+  final int tagId;
+  final String tagName;
 
   factory UserTag.fromJson(Map<String, dynamic> json) =>
       _$UserTagFromJson(json);

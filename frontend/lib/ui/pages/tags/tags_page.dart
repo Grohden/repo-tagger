@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../api/tagger/repository_tagger_client.dart';
-import '../../../services/session_service.dart';
 import '../../molecules/load_page_error.dart';
 import '../../molecules/page_title.dart';
 
@@ -36,6 +35,7 @@ class TagsPage extends GetView<TagsController> {
     }
 
     final tags = controller.tags.value;
+    final theme = Theme.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -45,10 +45,18 @@ class TagsPage extends GetView<TagsController> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: tags.map((tag) => Chip(label: Text(tag.name))).toList(),
+            children: tags
+                .map(
+                  (tag) => Chip(label: Text(tag.tagName)),
+                )
+                .toList(),
           )
         else
-          const Text("You don't have any tags yet")
+          Text(
+            // ignore: lines_longer_than_80_chars
+            "You don't have any tags yet, register them on your starred repos page",
+            style: theme.textTheme.headline5,
+          )
       ],
     );
   }

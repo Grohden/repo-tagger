@@ -14,10 +14,9 @@ class TagsContainer extends GetView<RepositoryDetailsController> {
     //  nice side effect on our list here :DDDD (by removing some items of it)
     //  for now this is surprisingly.. useful (?)
     final tags = controller.repository.value.userTags;
-
     return FlutterTagging<UserTag>(
       initialItems: tags,
-      areObjectsEqual: (a, b) => a.name == b.name,
+      areObjectsEqual: (a, b) => a.tagName == b.tagName,
       textFieldConfiguration: const TextFieldConfiguration(
         decoration: InputDecoration(
           border: InputBorder.none,
@@ -29,9 +28,12 @@ class TagsContainer extends GetView<RepositoryDetailsController> {
       findSuggestions: controller.findSuggestions,
       onAdded: controller.addTag,
       onRemoved: controller.removeTag,
-      additionCallback: (query) => UserTag(name: query, id: null),
+      additionCallback: (query) => UserTag(tagName: query, tagId: null),
+      onChipTap: controller.openTag,
       configureSuggestion: _buildSuggestion,
-      configureChip: (lang) => ChipConfiguration(label: Text(lang.name)),
+      configureChip: (lang) => ChipConfiguration(
+        label: Text(lang.tagName),
+      ),
       suggestionsBoxConfiguration: const SuggestionsBoxConfiguration(
         suggestionsBoxVerticalOffset: 10,
         keepSuggestionsOnLoading: true,
@@ -53,7 +55,7 @@ class TagsContainer extends GetView<RepositoryDetailsController> {
 
   SuggestionConfiguration _buildSuggestion(UserTag tag) {
     return SuggestionConfiguration(
-      title: Text(tag.name),
+      title: Text(tag.tagName),
       additionWidget: const Chip(
         avatar: Icon(
           Icons.add_circle,

@@ -1,5 +1,10 @@
 part of 'repository_details_page.dart';
 
+typedef Predicate<T> = bool Function(T value);
+
+Predicate<UserTag> _tagEqLower(UserTag a) =>
+    (b) => a.tagName.toLowerCase() == b.tagName.toLowerCase();
+
 class RepositoryDetailsController extends GetxController {
   RepositoryDetailsController();
 
@@ -8,20 +13,12 @@ class RepositoryDetailsController extends GetxController {
 
   final showLoading = false.obs;
   final hasLoadError = false.obs;
-  final repository = Rx<DetailedSourceRepository>(null);
-
-  final showReadmeLoading = false.obs;
-  final readmeLoadError = false.obs;
-  final readmeContents = ''.obs;
+  final repository = Rx<DetailedRepository>(null);
 
   List<UserTag> _allUserTags;
 
-  void logoff() async {
-    await Get.find<SessionService>().clearToken();
-  }
-
   int get repoId => int.parse(Get.parameters['id']);
-
+  
   void onInit() async {
     super.onInit();
     showLoading.value = true;
@@ -29,11 +26,6 @@ class RepositoryDetailsController extends GetxController {
 
     try {
       repository.value = await tagger.detailedRepo(repoId);
-
-      // Theoretically we should'nt need to await readme load
-      // but this **provably** causes a race condition
-      // on get set state fn
-      await loadReadme();
     } on Exception catch (error) {
       print(error);
       hasLoadError.value = true;
@@ -42,27 +34,12 @@ class RepositoryDetailsController extends GetxController {
     }
   }
 
-  /// Loads the readme contents from the repository,
-  /// may fail for unknown reasons, and in that case
-  /// it flags [readmeLoadError] as true
-  Future loadReadme() async {
-    try {
-      showReadmeLoading.value = true;
-      readmeLoadError.value = false;
-      print(repository.value.readmeUrl);
+  void getBack() {
+    Router.getOffAllToHome();
+  }
 
-      // We don't want to use the app dio instance
-      // because it's meant to be used with repository tagger
-      // and adds some unnecessary interceptors
-      final response = await Dio().get<String>(repository.value.readmeUrl);
-
-      readmeContents.value = response.data;
-    } on DioError catch (error) {
-      readmeLoadError.value = true;
-      print(error);
-    } finally {
-      showReadmeLoading.value = false;
-    }
+  void openTag(UserTag tag) {
+    Router.offAndToRepositories(tag.tagId);
   }
 
   /// Adds new tag into the current repository
@@ -70,7 +47,7 @@ class RepositoryDetailsController extends GetxController {
   /// at [repository] userTags this call is a noop
   Future<UserTag> addTag(UserTag tag) async {
     final foundTag = repository.value.userTags.firstWhere(
-      (current) => current.name.toLowerCase() == tag.name.toLowerCase(),
+      _tagEqLower(tag),
       orElse: () => null,
     );
 
@@ -83,7 +60,7 @@ class RepositoryDetailsController extends GetxController {
       }
 
       return tagger.addTag(CreateTagInput(
-        tagName: tag.name,
+        tagName: tag.tagName,
         repoGithubId: repoId,
       ));
     } on DioError catch (_) {
@@ -98,7 +75,7 @@ class RepositoryDetailsController extends GetxController {
   void removeTag(UserTag tag) async {
     try {
       tagger.removeTag(
-        userTagId: tag.id,
+        userTagId: tag.tagId,
         githubId: repoId,
       );
     } on DioError catch (_) {
@@ -115,12 +92,25 @@ class RepositoryDetailsController extends GetxController {
     final currentTags = repository.value.userTags;
 
     if (_allUserTags == null) {
-      _allUserTags = await tagger.userTags();
+      final userTags = await tagger.userTags();
+      final suggestedLangTag = UserTag(
+        tagId: null,
+        tagName: repository.value.language,
+      );
+      final useLangTag = userTags.firstWhere(
+        _tagEqLower(suggestedLangTag),
+        orElse: () => null,
+      );
+
+      _allUserTags = [
+        ...userTags,
+        if (useLangTag == null) suggestedLangTag,
+      ];
     }
 
     notInCurrentTags(UserTag tag) {
       final found = currentTags.firstWhere(
-        (present) => tag.name == present.name,
+        _tagEqLower(tag),
         orElse: () => null,
       );
 
@@ -128,7 +118,7 @@ class RepositoryDetailsController extends GetxController {
     }
 
     return _allUserTags
-        .where((tag) => tag.name.toLowerCase().contains(query.toLowerCase()))
+        .where((tag) => tag.tagName.toLowerCase().contains(query.toLowerCase()))
         .where(notInCurrentTags)
         .toList();
   }

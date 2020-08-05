@@ -7,13 +7,12 @@ import 'package:get/get.dart';
 import 'api/tagger/repository_tagger_client.dart';
 import 'generated_env.dart';
 import 'router.dart';
-import 'services/session_service.dart';
 import 'ui/organisms/adaptive_dialog.dart';
 import 'ui/pages/home/home_page.dart' show HomeBinding, HomePage;
 import 'ui/pages/login/login_page.dart' show LoginBinding, LoginPage;
-import 'ui/pages/register/register_page.dart';
 import 'ui/pages/repository_details/repository_details_page.dart';
 import 'ui/pages/splash/splash_page.dart';
+import 'ui/pages/tag_repositories/tag_repositories_page.dart';
 
 void main() {
   runApp(TaggerApp());
@@ -21,7 +20,6 @@ void main() {
 
 class TaggerApp extends StatelessWidget {
   const TaggerApp._({
-    @required this.session,
     @required this.dio,
     @required this.taggerClient,
   });
@@ -30,15 +28,23 @@ class TaggerApp extends StatelessWidget {
   /// is a trick to put global dependencies
   /// on get
   factory TaggerApp() {
-    final session = Get.put(SessionService());
-
     // Yes, this is a jojo reference
     final dio = Get.put(Dio())
+      ..interceptors.add(InterceptorsWrapper(onRequest: (options) async {
+        // It took me more than 16 hours to find this flag.
+        // This enables all dev requests to work with cookies so our dev
+        // sessions are actually persisted even when running
+        // on different ports.
+        // I'm almost crying right now.
+        options.extra['withCredentials'] = true;
+
+        return options;
+      }))
       ..interceptors.add(InterceptorsWrapper(onError: (error) async {
         if (error.response.statusCode == HttpStatus.unauthorized) {
-          final session = Get.find<SessionService>();
-
-          await session.clearToken();
+          // Order matters here, a dialog is a route for flutter
+          // so showing one and getting off all routes will
+          // do nothing besides going to another route.
           Router.getOffAllToLogin();
           Get.dialog(AdaptiveDialog.alert(
             title: const Text('Log in required'),
@@ -46,30 +52,16 @@ class TaggerApp extends StatelessWidget {
           ));
         }
       }))
-      ..interceptors.add(
-        InterceptorsWrapper(onRequest: (options) async {
-          final session = Get.find<SessionService>();
-          final token = await session.getToken();
-
-          if (token != null) {
-            options.headers['Authorization'] = 'Bearer $token';
-          }
-
-          return options;
-        }),
-      )
       ..interceptors.add(LogInterceptor(responseBody: false));
 
     final tagger = Get.put(RepositoryTaggerClient(dio, baseUrl: taggerUrl));
 
     return TaggerApp._(
-      session: session,
       dio: dio,
       taggerClient: tagger,
     );
   }
 
-  final SessionService session;
   final Dio dio;
   final RepositoryTaggerClient taggerClient;
 
@@ -103,14 +95,13 @@ class TaggerApp extends StatelessWidget {
           binding: RepositoryDetailsBinding(),
         ),
         GetPage(
-          name: Routes.login,
-          page: () => LoginPage(),
-          binding: LoginBinding(),
+          name: Routes.tagRepositories,
+          page: () => TagRepositoriesPage(),
+          binding: TagRepositoriesBinding(),
         ),
         GetPage(
-          name: Routes.register,
-          page: () => RegisterPage(),
-          binding: RegisterBinding(),
+          name: Routes.login,
+          page: () => LoginPage(),
         ),
       ],
     );

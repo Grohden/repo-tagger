@@ -21,7 +21,7 @@ class FlutterTagging<T> extends StatefulWidget {
 
   /// The configuration of the [TextField] that the [FlutterTagging]
   /// widget displays.
-  final TextFieldConfiguration textFieldConfiguration;
+  final TextFieldConfiguration<T> textFieldConfiguration;
 
   /// Called with the search pattern to get the search suggestions.
   ///
@@ -149,6 +149,9 @@ class FlutterTagging<T> extends StatefulWidget {
   /// Initial items
   final List<T> initialItems;
 
+  /// on chip tap callback
+  final Function(T) onChipTap;
+
   /// Creates a [FlutterTagging] widget.
   const FlutterTagging({
     @required this.initialItems,
@@ -174,6 +177,7 @@ class FlutterTagging<T> extends StatefulWidget {
     this.animationStart = 0.25,
     this.onAdded,
     this.onRemoved,
+    this.onChipTap,
   })  : assert(initialItems != null),
         assert(areObjectsEqual != null),
         assert(findSuggestions != null),
@@ -186,6 +190,7 @@ class FlutterTagging<T> extends StatefulWidget {
 
 class _FlutterTaggingState<T> extends State<FlutterTagging<T>> {
   TextEditingController _textController;
+  final _boxController = SuggestionsBoxController();
   FocusNode _focusNode;
   T _additionItem;
 
@@ -214,6 +219,7 @@ class _FlutterTaggingState<T> extends State<FlutterTagging<T>> {
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         TypeAheadField<T>(
+          suggestionsBoxController: _boxController,
           getImmediateSuggestions: widget.enableImmediateSuggestion,
           debounceDuration: widget.debounceDuration,
           hideOnEmpty: widget.hideOnEmpty,
@@ -228,7 +234,6 @@ class _FlutterTaggingState<T> extends State<FlutterTagging<T>> {
           keepSuggestionsOnLoading: suggestionsConf.keepSuggestionsOnLoading,
           keepSuggestionsOnSuggestionSelected:
               suggestionsConf.keepSuggestionsOnSuggestionSelected,
-          suggestionsBoxController: suggestionsConf.suggestionsBoxController,
           suggestionsBoxDecoration: suggestionsConf.suggestionsBoxDecoration,
           suggestionsBoxVerticalOffset:
               suggestionsConf.suggestionsBoxVerticalOffset,
@@ -243,24 +248,24 @@ class _FlutterTaggingState<T> extends State<FlutterTagging<T>> {
           },
           noItemsFoundBuilder: widget.emptyBuilder,
           textFieldConfiguration: widget.textFieldConfiguration.copyWith(
-            focusNode: _focusNode,
-            controller: _textController,
-            enabled: widget.textFieldConfiguration.enabled,
-            // Typeahead doesn't annotate public copy with
-            // so we have to cast here, yay! :D
-          ) as TextFieldConfiguration,
+              focusNode: _focusNode,
+              controller: _textController,
+              onEditingComplete: () {
+                final currentText = _textController.text;
+                if (currentText.isEmpty) {
+                  return;
+                }
+
+                final item = widget.additionCallback(currentText);
+                _onSuggestionSelected(item);
+                _boxController.close();
+              }
+              // Typeahead doesn't annotate public copy with
+              // so we have to cast here, yay! :D
+              ) as TextFieldConfiguration<T>,
           suggestionsCallback: _suggestionsCallback,
           itemBuilder: _buildItem,
-          onSuggestionSelected: (suggestion) async {
-            final added = await widget.onAdded?.call(suggestion);
-
-            if(added != null){
-              setState(() {
-                widget.initialItems.add(suggestion);
-              });
-            }
-            _textController.clear();
-          },
+          onSuggestionSelected: _onSuggestionSelected,
         ),
         Wrap(
           alignment: widget.wrapConfiguration.alignment,
@@ -273,40 +278,54 @@ class _FlutterTaggingState<T> extends State<FlutterTagging<T>> {
           verticalDirection: widget.wrapConfiguration.verticalDirection,
           children: widget.initialItems.map<Widget>((item) {
             var conf = widget.configureChip(item);
-            return Chip(
-              label: conf.label,
-              shape: conf.shape,
-              avatar: conf.avatar,
-              backgroundColor: conf.backgroundColor,
-              clipBehavior: conf.clipBehavior,
-              deleteButtonTooltipMessage: conf.deleteButtonTooltipMessage,
-              deleteIcon: conf.deleteIcon,
-              deleteIconColor: conf.deleteIconColor,
-              elevation: conf.elevation,
-              labelPadding: conf.labelPadding,
-              labelStyle: conf.labelStyle,
-              materialTapTargetSize: conf.materialTapTargetSize,
-              padding: conf.padding,
-              shadowColor: conf.shadowColor,
-              onDeleted: () {
-                final removed = widget.initialItems.firstWhere(
-                  (element) => widget.areObjectsEqual(element, item),
-                  orElse: () => null,
-                );
+            return GestureDetector(
+              onTap: () => widget.onChipTap?.call(item),
+              child: Chip(
+                label: conf.label,
+                shape: conf.shape,
+                avatar: conf.avatar,
+                backgroundColor: conf.backgroundColor,
+                clipBehavior: conf.clipBehavior,
+                deleteButtonTooltipMessage: conf.deleteButtonTooltipMessage,
+                deleteIcon: conf.deleteIcon,
+                deleteIconColor: conf.deleteIconColor,
+                elevation: conf.elevation,
+                labelPadding: conf.labelPadding,
+                labelStyle: conf.labelStyle,
+                materialTapTargetSize: conf.materialTapTargetSize,
+                padding: conf.padding,
+                shadowColor: conf.shadowColor,
+                onDeleted: () {
+                  final removed = widget.initialItems.firstWhere(
+                    (element) => widget.areObjectsEqual(element, item),
+                    orElse: () => null,
+                  );
 
-                setState(() {
-                  widget.initialItems.removeWhere((element) {
-                    return widget.areObjectsEqual(element, item);
+                  setState(() {
+                    widget.initialItems.removeWhere((element) {
+                      return widget.areObjectsEqual(element, item);
+                    });
                   });
-                });
 
-                widget.onRemoved?.call(removed);
-              },
+                  widget.onRemoved?.call(removed);
+                },
+              ),
             );
           }).toList(),
         ),
       ],
     );
+  }
+
+  void _onSuggestionSelected(T suggestion) async {
+    final added = await widget.onAdded?.call(suggestion);
+
+    if (added != null) {
+      setState(() {
+        widget.initialItems.add(added);
+      });
+    }
+    _textController.clear();
   }
 
   FutureOr<List<T>> _suggestionsCallback(String query) async {

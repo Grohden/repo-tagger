@@ -1,8 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:repo_tagger/api/tagger/repository_tagger_client.dart';
 
 import '../../../router.dart';
-import '../../../services/session_service.dart';
 
 /// Initial page that redirects the user
 /// based on the current persisted token
@@ -20,11 +22,16 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   Future _redirect() async {
-    final session = Get.find<SessionService>();
+    final tagger = Get.find<RepositoryTaggerClient>();
 
-    if (await session.hasToken()) {
-      Router.getOffAllToHome();
-    } else {
+    try {
+      if (await tagger.hasSession()) {
+        Router.getOffAllToHome();
+      } else {
+        Router.getOffAllToLogin();
+      }
+    } on Exception catch (error) {
+      print(error);
       Router.getOffAllToLogin();
     }
   }

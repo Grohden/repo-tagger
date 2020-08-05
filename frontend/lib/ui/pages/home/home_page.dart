@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../router.dart';
-import '../../../services/session_service.dart';
 import '../../templates/two_slot_container.dart';
 import '../starred/starred_page.dart';
 import '../tags/tags_page.dart';
@@ -20,9 +18,9 @@ class HomePage extends GetView<HomeController> {
       init: controller,
       builder: (_) => Scaffold(
         body: SafeArea(
-          child: TwoSlotContainer(
+          child: ThreeSlotContainer(
             leftSlot: _buildSidebar(context),
-            rightSlot: _buildPage(),
+            centralSlot: _buildPage(),
           ),
         ),
       ),
@@ -31,23 +29,33 @@ class HomePage extends GetView<HomeController> {
 
   Widget _buildSidebar(BuildContext context) {
     final currentRoute = controller.currentRoute;
+    final theme = Theme.of(context);
 
-    return Sidebar(
-      onLogout: controller.onLogout,
-      content: [
-        SideBarButton(
-          icon: const Icon(Icons.star_border),
-          label: const Text('Starred repos'),
-          selected: currentRoute.value == 0,
-          onPressed: () => currentRoute.value = 0,
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border(
+          right: BorderSide(
+            color: theme.dividerColor,
+            width: theme.dividerTheme.thickness ?? 1,
+          ),
         ),
-        SideBarButton(
-          icon: const Icon(Icons.label_outline),
-          label: const Text('Tags'),
-          selected: currentRoute.value == 1,
-          onPressed: () => currentRoute.value = 1,
-        ),
-      ],
+      ),
+      child: Sidebar(
+        content: [
+          SideBarButton(
+            icon: const Icon(Icons.star_border),
+            label: const Text('Starred repos'),
+            selected: currentRoute.value == 0,
+            onPressed: () => currentRoute.value = 0,
+          ),
+          SideBarButton(
+            icon: const Icon(Icons.label_outline),
+            label: const Text('Tags'),
+            selected: currentRoute.value == 1,
+            onPressed: () => currentRoute.value = 1,
+          ),
+        ],
+      ),
     );
   }
 

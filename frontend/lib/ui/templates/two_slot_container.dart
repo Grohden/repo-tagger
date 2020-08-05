@@ -1,24 +1,22 @@
 import 'package:flutter/material.dart';
 
-/// Renders a two slot (left, right) container
-class TwoSlotContainer extends StatelessWidget {
-  const TwoSlotContainer({
+/// Renders a tree slot (left, center, right) container
+class ThreeSlotContainer extends StatelessWidget {
+  const ThreeSlotContainer({
     Key key,
-    @required this.leftSlot,
-    @required this.rightSlot,
+    this.leftSlot,
+    this.rightSlot,
+    @required this.centralSlot,
     this.leftWidth = 275,
+    this.rightWidth = 275,
   }) : super(key: key);
 
-  /// Amount of space taken by left container
   final double leftWidth;
-
-  /// Left container takes the [leftWidth] space
-  /// left container is also rendered with a right border
-  /// with thickness defined by [dividerTheme]
   final Widget leftSlot;
-
-  /// Left container takes available space left by the [leftSlot]
+  final double rightWidth;
   final Widget rightSlot;
+
+  final Widget centralSlot;
 
   @override
   Widget build(BuildContext context) {
@@ -26,19 +24,13 @@ class TwoSlotContainer extends StatelessWidget {
 
     return Row(
       mainAxisSize: MainAxisSize.max,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        DecoratedBox(
-          decoration: BoxDecoration(
-            border: Border(
-              right: BorderSide(
-                color: theme.dividerColor,
-                width: theme.dividerTheme.thickness ?? 1,
-              ),
-            ),
-          ),
-          child: SizedBox(width: leftWidth, child: leftSlot),
-        ),
-        Expanded(child: rightSlot)
+        if (leftSlot != null)
+          SizedBox(width: leftWidth, child: leftSlot),
+        Expanded(child: centralSlot),
+        if (rightSlot != null)
+          SizedBox(width: rightWidth, child: rightSlot)
       ],
     );
   }

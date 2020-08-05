@@ -8,10 +8,6 @@ class TagsController extends GetxController {
   final hasLoadError = false.obs;
   final tags = RxList<UserTag>([]);
 
-  void logoff() async {
-    await Get.find<SessionService>().clearToken();
-  }
-
   void onInit() async {
     super.onInit();
     load();
