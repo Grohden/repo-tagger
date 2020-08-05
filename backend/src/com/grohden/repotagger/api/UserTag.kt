@@ -7,7 +7,6 @@ import com.grohden.repotagger.github.api.GithubClient
 import com.grohden.repotagger.requireSession
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.request.receiveOrNull
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
@@ -41,7 +40,7 @@ fun Route.userTag(
          * Returns OK and a list of [DetailedRepository]
          */
         get("/{tagId}/repositories") {
-            val tagId = call.parameters["tagId"]!!.toInt()
+            val tagId = call.requireIntParam("tagId")
             val session = call.requireSession()
             val repositories = dao.findRepositoriesByUserTag(
                 userGithubId = session.githubUserId,
@@ -52,8 +51,6 @@ fun Route.userTag(
         }
 
         /**
-         * FIXME: should be moved to repository
-         *
          * Registers a user tag on a repository
          *
          * Receives a [CreateTagInput]
@@ -61,7 +58,7 @@ fun Route.userTag(
          * Returns OK response with the newly created [UserTagDTO]
          */
         post("/add") {
-            val input = call.receiveOrNull<CreateTagInput>()!!
+            val input = call.requireReceived<CreateTagInput>()
             val session = call.requireSession()
 
             var repo = dao.findUserRepositoryByGithubId(
@@ -73,7 +70,7 @@ fun Route.userTag(
                 // We avoid hitting the rate limit
                 // and also spamming a LOT of requests
                 // by saving the repo when it's created
-                // TODO: we will be outsync with github data
+                // TODO: we will be outsync with github data,
                 //  we need to put some "last time updated"
                 //  tolerance into the [SourceRepositoryTable]
                 val githubRepo = githubClient.repositoryById(
@@ -104,7 +101,7 @@ fun Route.userTag(
                 )
             }
 
-            call.respond(HttpStatusCode.OK, tag)
+            call.respond(HttpStatusCode.Created, tag)
         }
     }
 }

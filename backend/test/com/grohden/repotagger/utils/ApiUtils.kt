@@ -20,7 +20,7 @@ fun TestApplicationEngine.createTag(
 }
 
 
-fun TestApplicationEngine.listAlTags(): TestApplicationCall {
+fun TestApplicationEngine.listAllTags(): TestApplicationCall {
     return handleRequest(HttpMethod.Get, "/api/tag/list") {
         withContentType(ContentType.Application.Json)
     }

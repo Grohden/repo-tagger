@@ -96,12 +96,11 @@ fun Route.repository(
          */
         get("/{githubId}/tags") {
             val session = call.requireSession()
-            val repoGithubId = call.parameters["githubId"]!!.toInt()
+            val repoGithubId = call.requireIntParam("githubId")
             val taggerRepo = dao.findUserRepositoryByGithubId(
                 userGithubId = session.githubUserId,
                 repoGithubId = repoGithubId
             )
-            // TODO: return error for repo null.
             val tags = taggerRepo?.let {
                 dao.findUserTagsByRepository(
                     userGithubId = session.githubUserId,
@@ -118,7 +117,7 @@ fun Route.repository(
          * returns a list of [DetailedRepository]
          */
         get("/details/{githubId}") {
-            val repoGithubId = call.parameters["githubId"]!!.toInt()
+            val repoGithubId = call.requireIntParam("githubId")
             val session = call.requireSession()
             val taggerRepo = dao.findUserRepositoryByGithubId(
                 userGithubId = session.githubUserId,
@@ -175,22 +174,25 @@ fun Route.repository(
          */
         delete("{githubId}/remove-tag/{userTagId}") {
             val session = call.requireSession()
-            val repoGithubId = call.parameters["githubId"]!!.toInt()
-            val tagId = call.parameters["userTagId"]!!.toInt()
+            val repoGithubId = call.requireIntParam("githubId")
+            val tagId = call.requireIntParam("userTagId")
 
             val tag = dao.findUserTagById(
                 tagId = tagId,
                 userGithubId = session.githubUserId
-            )!!
+            ) ?: throw NotFound("tag not found")
             val repo = dao.findUserRepositoryByGithubId(
                 userGithubId = session.githubUserId,
                 repoGithubId = repoGithubId
-            )!!
+            ) ?: throw NotFound("repository not found")
 
             dao.removeUserTagFromRepository(
                 tagId = tag.tagId,
                 repoId = repo.repoId
             )
+
+            dao.removeIfOrphanTag(tag.tagId)
+
             call.respond(HttpStatusCode.OK)
         }
     }

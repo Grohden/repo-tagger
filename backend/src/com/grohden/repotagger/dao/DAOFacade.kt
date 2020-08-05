@@ -86,6 +86,12 @@ interface DAOFacade {
      * Finds all tags that a user has created
      */
     fun findUserTags(userGithubId: Int): List<UserTagDTO>
+
+    /**
+     * If a tag is orphan (no refs to it from any repo) it
+     * is removed
+     */
+    fun removeIfOrphanTag(tagId: Int);
 }
 
 
@@ -248,6 +254,21 @@ class DAOFacadeDatabase(
             .toDTOList()
     }
 
+    override fun removeIfOrphanTag(tagId: Int) = transaction(db) {
+        val refsCount = (SourceRepositoryTable innerJoin SourceRepoUserTagTable)
+            .select {
+                SourceRepoUserTagTable.repository eq SourceRepositoryTable.id and
+                        (SourceRepoUserTagTable.tag eq tagId)
+            }
+            .let { SourceRepositoryDAO.wrapRows(it) }
+            .count()
+
+        if(refsCount == 0L) {
+            UserTagsTable.deleteWhere(limit = 1) {
+                UserTagsTable.id eq tagId
+            }
+        }
+    }
 
     @TestOnly
     fun dropAll() = transaction(db) {

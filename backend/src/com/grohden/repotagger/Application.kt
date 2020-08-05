@@ -1,8 +1,6 @@
 package com.grohden.repotagger
 
-import com.grohden.repotagger.api.repository
-import com.grohden.repotagger.api.session
-import com.grohden.repotagger.api.userTag
+import com.grohden.repotagger.api.*
 import com.grohden.repotagger.dao.DAOFacade
 import com.grohden.repotagger.dao.DAOFacadeDatabase
 import com.grohden.repotagger.github.api.GithubClient
@@ -202,6 +200,27 @@ fun Application.moduleWithDependencies(dao: DAOFacade) {
     install(StatusPages) {
         exception<NoSessionException> {
             call.respond(HttpStatusCode.Unauthorized)
+        }
+        exception<BadRequest> {
+            // Second call returns null string when message is null
+            if (it.message != null) {
+                call.respond(HttpStatusCode.BadRequest)
+            } else {
+                call.respond(HttpStatusCode.BadRequest) {
+                    it.message
+                }
+            }
+
+        }
+        exception<NotFound> {
+            // Second call returns null string when message is null
+            if (it.message != null) {
+                call.respond(HttpStatusCode.NotFound)
+            } else {
+                call.respond(HttpStatusCode.NotFound) {
+                    it.message
+                }
+            }
         }
     }
 

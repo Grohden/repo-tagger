@@ -125,4 +125,42 @@ class RepositoryTest : BaseTest() {
             }
         }
     }
+
+    @Test
+    fun `should delete a orphan tag from db`() = testApp {
+        cookiesSession {
+            login()
+            val tag = createTag(
+                CreateTagInput(
+                    tagName = "dart",
+                    repoGithubId = defaultRepoId
+                )
+            ).let { gson.fromJson<UserTagDTO>(it.response.content!!) }
+
+            deleteRepoTag(defaultRepoId, tag.tagId).apply {
+                requestHandled shouldBe true
+                response.status() shouldBeEqualTo HttpStatusCode.OK
+                response.content shouldBe null
+            }
+
+
+            listAllTags().apply {
+                val tags = gson.fromJson<List<UserTagDTO>>(response.content!!)
+
+                tags.shouldBeEmpty()
+            }
+        }
+    }
+
+    @Test
+    fun `should respond error for a not found tag`() = testApp {
+        cookiesSession {
+            login()
+            deleteRepoTag(defaultRepoId, 42).apply {
+                requestHandled shouldBe true
+                response.status() shouldBeEqualTo HttpStatusCode.NotFound
+                response.content shouldBe null
+            }
+        }
+    }
 }
