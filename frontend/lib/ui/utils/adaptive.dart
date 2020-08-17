@@ -9,7 +9,7 @@ bool shouldUseMaterial(ThemeData theme) {
   // TODO: Need to find out why [TargetPlatform] doesn't
   //  include web.
   final isWeb = GetPlatform.isWeb;
-  if(isWeb) {
+  if (isWeb) {
     return true;
   }
 

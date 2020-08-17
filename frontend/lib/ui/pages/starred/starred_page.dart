@@ -40,7 +40,6 @@ class StarredPage extends TaggerPage<StarredController> {
     }
 
     return RepositoryList(
-      title: const PageTitle('Your starred repositories'),
       onOpen: controller.openRepo,
       items: controller.repositories.value,
       onLoadMore: controller.loadMore,

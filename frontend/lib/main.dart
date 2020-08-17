@@ -9,7 +9,7 @@ import 'api/tagger/repository_tagger_client.dart';
 import 'router.dart';
 import 'tagger_preferences.dart';
 import 'ui/organisms/adaptive_dialog.dart';
-import 'ui/pages/home/home_page.dart' show HomeController, HomePage;
+import 'ui/pages/home/home_page.dart';
 import 'ui/pages/login/login_page.dart' show LoginPage;
 import 'ui/pages/repository_details/repository_details_page.dart';
 import 'ui/pages/splash/splash_page.dart';
@@ -83,11 +83,6 @@ class TaggerApp extends StatelessWidget {
       ),
     );
 
-    // To fix issues related to
-    // flutter/get url handlers we need to make sure
-    // that get doesn't delete home controller.
-    Get.put(HomeController());
-
     return TaggerApp._(
       dio: dio,
       taggerClient: tagger,
@@ -125,9 +120,7 @@ class TaggerApp extends StatelessWidget {
         ),
         GetPage(
           name: Routes.home,
-          page: () => const HomePage(
-            key: Key('home'),
-          ),
+          page: () => const HomePage(),
         ),
         GetPage(
           name: Routes.repoDetails,
