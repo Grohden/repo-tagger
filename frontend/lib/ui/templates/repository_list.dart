@@ -8,7 +8,7 @@ import 'page_body.dart';
 /// Default repository list template
 class RepositoryList extends StatelessWidget {
   const RepositoryList({
-    @required this.title,
+    this.title,
     @required this.items,
     @required this.onOpen,
     this.onLoadMore,
@@ -28,7 +28,7 @@ class RepositoryList extends StatelessWidget {
     return SafeArea(
       child: Column(
         children: [
-          title,
+          if (title != null) title,
           Expanded(child: _buildList(context)),
         ],
       ),
