@@ -78,15 +78,15 @@ class _HomePageState extends State<HomePage>
 
     return Column(
       children: [
+        _SimpleTabBar(
+          tabs: _buildTabs(context: context, theme: theme),
+          tabController: _tabController,
+        ),
         Expanded(
           child: TabBarView(
             controller: _tabController,
             children: _buildTabViews(),
           ),
-        ),
-        _SimpleTabBar(
-          tabs: _buildTabs(context: context, theme: theme),
-          tabController: _tabController,
         ),
       ],
     );
@@ -127,15 +127,13 @@ class _HomePageState extends State<HomePage>
                     context: context,
                     theme: theme,
                     isVertical: true,
-                  ).map(
-                    (widget) {
-                      // Revert the rotation on the tabs.
-                      return RotatedBox(
-                        quarterTurns: revertVerticalRotation,
-                        child: widget,
-                      );
-                    },
-                  ).toList(),
+                  ).map((widget) {
+                    // Revert the rotation on the tabs.
+                    return RotatedBox(
+                      quarterTurns: revertVerticalRotation,
+                      child: widget,
+                    );
+                  }).toList(),
                   tabController: _tabController,
                 ),
               ),

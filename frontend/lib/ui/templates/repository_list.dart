@@ -36,45 +36,53 @@ class RepositoryList extends StatelessWidget {
   }
 
   Widget _buildList(BuildContext context) {
-    final style = Theme.of(context).textTheme;
+    final count = MediaQuery.of(context).size.width / 450;
     final offset = onLoadMore != null ? 1 : 0;
 
-    return ListView.separated(
-        itemCount: items.length + offset,
-        padding: const EdgeInsets.all(kStandardPadding),
-        separatorBuilder: (_, __) => const Divider(thickness: 1),
-        itemBuilder: (context, index) {
-          if (index >= items.length) {
-            return PrimaryRaisedButton(
-              child: const Text('Load more'),
-              onPressed: onLoadMore,
-              showLoader: isLoadingMore,
-            );
-          }
+    return Scrollbar(
+      child: GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: count.ceil(),
+            childAspectRatio: 3 / 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+          ),
+          itemCount: items.length + offset,
+          padding: const EdgeInsets.all(kStandardPadding),
+          itemBuilder: (context, index) {
+            if (index >= items.length) {
+              return PrimaryRaisedButton(
+                child: const Text('Load more'),
+                onPressed: onLoadMore,
+                showLoader: isLoadingMore,
+              );
+            }
 
-          final item = items[index];
+            final item = items[index];
 
-          return ListTile(
-            onTap: () => onOpen(item),
-            title: Row(
-              children: [
-                Text('${item.ownerName} / ', style: style.subtitle1),
-                Text(item.name, style: style.headline5),
-              ],
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (item.description?.isNotEmpty == true)
-                  Text(item.description ?? ''),
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: _buildChipDetails(item),
+            return Card(
+              child: InkWell(
+                onTap: () => onOpen(item),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: ListTile(
+                        title: Text(item.name),
+                        subtitle: item.description?.isNotEmpty == true
+                            ? Text(item.description ?? '')
+                            : null,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: _buildChipDetails(item),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          );
-        });
+              ),
+            );
+          }),
+    );
   }
 
   Widget _buildChipDetails(SimpleRepository item) {
