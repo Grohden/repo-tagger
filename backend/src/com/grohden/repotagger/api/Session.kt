@@ -29,7 +29,7 @@ fun Route.session(
      * This is where the frontend web will hit the server asking for the OAuth
      * redirection
      *
-     * If the server is dev or test, your're supposed to provide a personal access token
+     * If the server is dev or test, you are supposed to provide a personal access token
      * and this wil end up creating your session using the provided token
      *
      * On production, this will redirect to github oauth route

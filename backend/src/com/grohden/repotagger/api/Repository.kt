@@ -1,17 +1,15 @@
 package com.grohden.repotagger.api
 
+import com.grohden.repotagger.cache.LRUCache
 import com.grohden.repotagger.dao.DAOFacade
 import com.grohden.repotagger.dao.tables.SourceRepositoryDTO
 import com.grohden.repotagger.dao.tables.UserTagDTO
 import com.grohden.repotagger.github.api.GithubClient
 import com.grohden.repotagger.requireSession
-import io.ktor.application.call
-import io.ktor.http.HttpStatusCode
-import io.ktor.response.respond
-import io.ktor.routing.Route
-import io.ktor.routing.delete
-import io.ktor.routing.get
-import io.ktor.routing.route
+import io.ktor.application.*
+import io.ktor.http.*
+import io.ktor.response.*
+import io.ktor.routing.*
 
 /**
  * Represents a detailed repository, meaning that
@@ -64,6 +62,11 @@ fun Route.repository(
     dao: DAOFacade,
     githubClient: GithubClient
 ) {
+    // Very naive cache impl, mostly used for UI dev.
+    val starredCache = LRUCache<String, List<SimpleRepository>>(
+        capacity = 10
+    )
+
     route("/repository") {
         /**
          * List user starred repositories
@@ -71,20 +74,23 @@ fun Route.repository(
          * return s a list of [SimpleRepository]
          */
         get("/starred") {
-            val page = call.intParamOrNull("page")
+            val page = call.intParamOrNull("page") ?: 1
             val session = call.requireSession()
-            // FIXME: this needs a cache
-            val starred = githubClient.userStarred(session.token, page)
-            val list = starred.map { githubRepo ->
-                SimpleRepository(
-                    githubId = githubRepo.id,
-                    name = githubRepo.name,
-                    ownerName = githubRepo.owner.login,
-                    description = githubRepo.description,
-                    language = githubRepo.language,
-                    stargazersCount = githubRepo.stargazersCount,
-                    forksCount = githubRepo.forksCount
-                )
+
+            val list = starredCache.getOrDefaultAndPut("${session.token}:${page}") {
+                val starred = githubClient.userStarred(session.token, page)
+
+                starred.map { githubRepo ->
+                    SimpleRepository(
+                        githubId = githubRepo.id,
+                        name = githubRepo.name,
+                        ownerName = githubRepo.owner.login,
+                        description = githubRepo.description,
+                        language = githubRepo.language,
+                        stargazersCount = githubRepo.stargazersCount,
+                        forksCount = githubRepo.forksCount
+                    )
+                }
             }
 
             call.respond(list)

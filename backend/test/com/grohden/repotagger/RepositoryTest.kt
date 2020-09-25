@@ -1,7 +1,6 @@
 package com.grohden.repotagger
 
 import com.grohden.repotagger.api.DetailedRepository
-import com.grohden.repotagger.api.SimpleRepository
 import com.grohden.repotagger.api.TagRepositoriesResponse
 import com.grohden.repotagger.dao.CreateTagInput
 import com.grohden.repotagger.dao.tables.UserTagDTO

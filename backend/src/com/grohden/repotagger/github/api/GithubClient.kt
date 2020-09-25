@@ -1,14 +1,10 @@
 package com.grohden.repotagger.github.api
 
 import com.google.gson.annotations.SerializedName
-import io.ktor.client.HttpClient
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.forms.submitForm
-import io.ktor.client.request.get
-import io.ktor.client.request.header
-import io.ktor.client.request.url
-import io.ktor.http.HttpMethod
-import io.ktor.http.Parameters
+import io.ktor.client.*
+import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
+import io.ktor.http.*
 
 
 private const val API_BASE = "https://api.github.com"
@@ -84,8 +80,8 @@ class GithubClient(private val client: HttpClient) {
      *
      * https://docs.github.com/en/rest/reference/activity#list-repositories-starred-by-the-authenticated-user
      */
-    suspend fun userStarred(token: String, page: Int?): GithubRepositories = client.get(
-        urlString = "$API_BASE/user/starred?page=${page ?: 1}"
+    suspend fun userStarred(token: String, page: Int = 1): GithubRepositories = client.get(
+        urlString = "$API_BASE/user/starred?page=${page}"
     ) {
         withV3Accept()
         withToken(token)
